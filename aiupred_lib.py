@@ -188,18 +188,12 @@ def main(multifasta_file, force_cpu=False, gpu_num=0):
     if not sequences:
         raise ValueError("FASTA file is empty")
     results = {}
-    # logging.StreamHandler.terminator = ""
+    logging.StreamHandler.terminator = ""
     for num, (ident, sequence) in enumerate(sequences.items()):
-        print(len(sequence))
         results[ident] = {}
         results[ident]['aiupred'] = predict_disorder(sequence, embedding_model, reg_model, device)
         results[ident]['sequence'] = sequence
-        # logging.debug(f'{num}/{len(sequences)} sequences done...\r')
-    # logging.StreamHandler.terminator = '\n'
+        logging.debug(f'{num}/{len(sequences)} sequences done...\r')
+    logging.StreamHandler.terminator = '\n'
+    logging.debug(f'Analysis done, writing output')
     return results
-
-
-if __name__ == '__main__':
-    print(aiupred_disorder('MDGAAGPGDGPAREALQSLSQRLRVQEQEMELVKAALAEALRLLRLQVPPSSLQGSGTPA'))
-    torch.cuda.set_per_process_memory_fraction(1/3)
-    aiupred_disorder('ACDEQTRSFL'*400)
