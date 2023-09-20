@@ -5,14 +5,17 @@ from torch import nn, Tensor
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 from torch.nn.functional import pad
 import math
-import numpy as np
 import os
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 AA_CODE = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
 WINDOW = 100
 
+
 class PositionalEncoding(nn.Module):
+    """
+    Positional encoding for the Transformer network
+    """
     def __init__(self, d_model, max_len=5000):
         super(PositionalEncoding, self).__init__()
 
@@ -29,7 +32,9 @@ class PositionalEncoding(nn.Module):
 
 
 class TransformerModel(nn.Module):
-
+    """
+    Transformer model to estimate positional contact potential from an amino acid sequence
+    """
     def __init__(self):
         super().__init__()
         self.d_model = 32
@@ -51,6 +56,9 @@ class TransformerModel(nn.Module):
 
 
 class RegModel(nn.Module):
+    """
+    Regression model to estimate disorder propensity from and energy tensor
+    """
     def __init__(self):
         super().__init__()
         self.forward_layer = nn.Linear((WINDOW + 1), 8)
@@ -64,25 +72,51 @@ class RegModel(nn.Module):
         return torch.squeeze(output)
 
 
-def tokenize(sequence):
-    return torch.tensor([AA_CODE.index(aa) if aa in AA_CODE else 20 for aa in sequence])
+def tokenize(sequence, device):
+    """
+    Tokenize an amino acid sequence. Non-standard amino acids are treated as X
+    :param sequence: Amino acid sequence in string
+    :param device: Device to run on. CUDA{x} or CPU
+    :return: Tokenized tensors
+    """
+    return torch.tensor([AA_CODE.index(aa) if aa in AA_CODE else 20 for aa in sequence]).to(device)
 
 
-def predict_disorder(sequence, energy_model, regression_model):
-    predicted_energies = calculate_energy(sequence, energy_model)
+def predict_disorder(sequence, energy_model, regression_model, device):
+    """
+    Predict disorder propensity from a sequence using a transformer and a regression model
+    :param sequence: Amino acid sequence in string
+    :param energy_model: Transformer model
+    :param regression_model: regression model
+    :param device: Device to run on. CUDA{x} or CPU
+    :return:
+    """
+    predicted_energies = calculate_energy(sequence, energy_model, device)
     padded_energies = pad(predicted_energies, (WINDOW // 2, WINDOW // 2), 'constant', 0)
     unfolded_energies = padded_energies.unfold(0, WINDOW + 1, 1)
-    return list(regression_model(unfolded_energies).detach().cpu().numpy())
+    return regression_model(unfolded_energies).detach().cpu().numpy()
 
 
-def calculate_energy(sequence, energy_model):
-    tokenized_sequence = tokenize(sequence)
+def calculate_energy(sequence, energy_model, device):
+    """
+    Calculates residue energy from a sequence using a transformer network
+    :param sequence: Amino acid sequence in string
+    :param energy_model: Transformer model
+    :param device: Device to run on. CUDA{x} or CPU
+    :return: Tensor of energy values
+    """
+    tokenized_sequence = tokenize(sequence, device)
     padded_token = pad(tokenized_sequence, (WINDOW // 2, WINDOW // 2), 'constant', 20)
     unfolded_tokens = padded_token.unfold(0, WINDOW + 1, 1)
     return energy_model(unfolded_tokens)
 
 
 def multifasta_reader(file_location):
+    """
+    (multi) FASTA reader function
+    :param file_location: Location of (multi) FASTA formatted file
+    :return: Dictionary with header -> sequence mapping from the file
+    """
     sequence_dct = {}
     header = None
     with open(file_location) as file_handler:
@@ -95,29 +129,77 @@ def multifasta_reader(file_location):
     return sequence_dct
 
 
-def aiupred_disorder(sequence, device):
-    embedding_model = TransformerModel()
-    embedding_model.load_state_dict(torch.load(f'{PATH}/data/embedding.pt', map_location=device))
-    embedding_model.eval()
-
-    reg_model = RegModel()
-    reg_model.load_state_dict(torch.load(f'{PATH}/data/regression.pt', map_location=device))
-    reg_model.eval()
-
-    return predict_disorder(sequence, embedding_model, reg_model)
-
-
-def main(multifasta_file, force_cpu=False, gpu_num=0):
+def aiupred_disorder(sequence, force_cpu=False, gpu_num=0):
+    """
+    Library function to carry out single sequence analysis
+    :param sequence: Amino acid sequence in a string
+    :param force_cpu: Force the method to run on CPU only mode
+    :param gpu_num: Index of the GPU to use, default=0
+    :return: Numpy array with disorder propensities for each position
+    """
     device = torch.device(f'cuda:{gpu_num}' if torch.cuda.is_available() else 'cpu')
     if force_cpu:
         device = 'cpu'
     logging.debug(f'Running on {device}')
     if device == 'cpu':
         print('# Warning: No GPU found, running on CPU. It is advised to run AIUPred on a GPU')
+
+    embedding_model = TransformerModel()
+    embedding_model.load_state_dict(torch.load(f'{PATH}/data/embedding.pt', map_location=device))
+    embedding_model.to(device)
+    embedding_model.eval()
+
+    reg_model = RegModel()
+    reg_model.load_state_dict(torch.load(f'{PATH}/data/regression.pt', map_location=device))
+    reg_model.to(device)
+    reg_model.eval()
+
+    return predict_disorder(sequence, embedding_model, reg_model, device)
+
+
+def main(multifasta_file, force_cpu=False, gpu_num=0):
+    """
+    Main function to be called from aiupred.py
+    :param multifasta_file: Location of (multi) FASTA formatted sequences
+    :param force_cpu: Force the method to run on CPU only mode
+    :param gpu_num: Index of the GPU to use, default=0
+    :return: Dictionary with parsed sequences and predicted results
+    """
+    device = torch.device(f'cuda:{gpu_num}' if torch.cuda.is_available() else 'cpu')
+    if force_cpu:
+        device = 'cpu'
+    logging.debug(f'Running on {device}')
+    if device == 'cpu':
+        print('# Warning: No GPU found, running on CPU. It is advised to run AIUPred on a GPU')
+
+    embedding_model = TransformerModel()
+    embedding_model.load_state_dict(torch.load(f'{PATH}/data/embedding.pt', map_location=device))
+    embedding_model.to(device)
+    embedding_model.eval()
+
+    reg_model = RegModel()
+    reg_model.load_state_dict(torch.load(f'{PATH}/data/regression.pt', map_location=device))
+    reg_model.to(device)
+    reg_model.eval()
+
+    logging.debug("Networks initialized")
     sequences = multifasta_reader(multifasta_file)
+    logging.debug("Sequences read")
+    if not sequences:
+        raise ValueError("FASTA file is empty")
     results = {}
-    for ident, sequence in sequences.items():
+    # logging.StreamHandler.terminator = ""
+    for num, (ident, sequence) in enumerate(sequences.items()):
+        print(len(sequence))
         results[ident] = {}
-        results[ident]['aiupred'] = aiupred_disorder(sequence, device)
+        results[ident]['aiupred'] = predict_disorder(sequence, embedding_model, reg_model, device)
         results[ident]['sequence'] = sequence
+        # logging.debug(f'{num}/{len(sequences)} sequences done...\r')
+    # logging.StreamHandler.terminator = '\n'
     return results
+
+
+if __name__ == '__main__':
+    print(aiupred_disorder('MDGAAGPGDGPAREALQSLSQRLRVQEQEMELVKAALAEALRLLRLQVPPSSLQGSGTPA'))
+    torch.cuda.set_per_process_memory_fraction(1/3)
+    aiupred_disorder('ACDEQTRSFL'*400)

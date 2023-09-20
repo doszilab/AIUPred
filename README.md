@@ -53,6 +53,25 @@ Expected output:
                         Output file
 ```
 
+## Benchmarks
+
+Tested on the human proteome (20593 proteins)
+
+
+|     | Type            | Running time (protein/second) |   
+|-----|-----------------|-------------------------------|
+| GPU | 1080 Ti 12G       | 100                           |
+| CPU | Xeon E3-1270 v5 | 3.5                           | 
+
+
+GPU memory usage:
+
+| VRAM (GB) | Residues |   
+|-----------|----------|
+| 2         | 3000     |
+| 6         | 8000     | 
+| 12        | 16000    |  
+
 ## Testing
 
 ![plot](./imgs/P04637.png)

@@ -7,6 +7,11 @@ parser = argparse.ArgumentParser(
                 'Developed by Gabor Erdos and Zsuzsanna Dosztanyi',
     formatter_class=argparse.RawTextHelpFormatter
 )
+parser.add_argument("-i", "--input_file",
+                    help="Input file in (multi) FASTA format",
+                    required=True)
+parser.add_argument("-o", "--output_file",
+                    help="Output file")
 parser.add_argument("-v", "--verbose",
                     help="Increase output verbosity",
                     action="store_true")
@@ -16,11 +21,6 @@ parser.add_argument("-g", "--gpu",
 parser.add_argument("--force-cpu",
                     help="Force the network to only utilize the CPU. Calculation will be very slow, not recommended",
                     action="store_true")
-parser.add_argument("-i", "--input_file",
-                    help="Input file in (multi) FASTA format",
-                    required=True)
-parser.add_argument("-o", "--output_file",
-                    help="Output file")
 
 args = parser.parse_args()
 # logging.basicConfig(format='%(asctime)s | %(message)s')
