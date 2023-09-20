@@ -2,6 +2,25 @@
 
 For in-house use only
 
+## Architecture
+
+AIUPred utilizes the original IUPred force-field.
+The force-field is than used to calculate the energies 
+of globular proteins (17282 proteins with 4276509 residues), which is than 
+estimated using an encoder-only transformer network with
+a fully connected decoder. 
+
+The input of the transformer is an integer tokenized sequence
+in a -50+50 window. To account for N and C terminal positions
+an X encoding residues is added. All non-standard residues are also
+substituted to X.
+
+The estimated energies are than used to predict disorder propensity
+using the DisProt database and a set of fully connected layers. 
+The energy values are padded with zeroes and unfolded into
+100 long windows. 
+
+
 ## Requirements
 
 ```
@@ -44,24 +63,22 @@ Expected output:
 
 ```
   -h, --help            show this help message and exit
-  -v, --verbose         Increase output verbosity
-  -g GPU, --gpu GPU     Index of GPU to use, default=0
-  --force-cpu           Force the network to only utilize the CPU. Calculation will be very slow, not recommended
   -i INPUT_FILE, --input_file INPUT_FILE
                         Input file in (multi) FASTA format
   -o OUTPUT_FILE, --output_file OUTPUT_FILE
                         Output file
+  -v, --verbose         Increase output verbosity
+  -g GPU, --gpu GPU     Index of GPU to use, default=0
+  --force-cpu           Force the network to only utilize the CPU. Calculation will be very slow, not recommended
+
 ```
 
 ## Benchmarks
 
-Tested on the human proteome (20593 proteins)
-
-
-|     | Type            | Running time (protein/second) |   
-|-----|-----------------|-------------------------------|
-| GPU | 1080 Ti 12G       | 100                           |
-| CPU | Xeon E3-1270 v5 | 3.5                           | 
+|     | Type            | Single sequence | Human proteome          |   
+|-----|-------------|-----------------|-------------------------|
+| GPU | 1080 Ti 12G  | 3 sec           | **100 proteins/second** |
+| CPU | Xeon E3-1270 v5 | **1.7 sec**     | 3.5 proteins/second     | 
 
 
 GPU memory usage:
