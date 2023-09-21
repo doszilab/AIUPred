@@ -111,7 +111,7 @@ def calculate_energy(sequence, energy_model, device):
     return energy_model(unfolded_tokens)
 
 
-def multifasta_reader(file_location):
+def multifasta_reader(file_handler):
     """
     (multi) FASTA reader function
     :param file_location: Location of (multi) FASTA formatted file
@@ -119,23 +119,22 @@ def multifasta_reader(file_location):
     """
     sequence_dct = {}
     header = None
-    with open(file_location) as file_handler:
-        for line in file_handler:
-            if line.startswith('>'):
-                header = line.strip()
-                sequence_dct[header] = ''
-            elif line.strip():
-                sequence_dct[header] += line.strip()
+    for line in file_handler:
+        if line.startswith('>'):
+            header = line.strip()
+            sequence_dct[header] = ''
+        elif line.strip():
+            sequence_dct[header] += line.strip()
+    file_handler.close()
     return sequence_dct
 
 
-def aiupred_disorder(sequence, force_cpu=False, gpu_num=0):
+def init_models(force_cpu=False, gpu_num=0):
     """
-    Library function to carry out single sequence analysis
-    :param sequence: Amino acid sequence in a string
+    Initialize networks and device to run on
     :param force_cpu: Force the method to run on CPU only mode
     :param gpu_num: Index of the GPU to use, default=0
-    :return: Numpy array with disorder propensities for each position
+    :return: Tuple of (embedding_model, regression_model, device)
     """
     device = torch.device(f'cuda:{gpu_num}' if torch.cuda.is_available() else 'cpu')
     if force_cpu:
@@ -153,7 +152,20 @@ def aiupred_disorder(sequence, force_cpu=False, gpu_num=0):
     reg_model.load_state_dict(torch.load(f'{PATH}/data/regression.pt', map_location=device))
     reg_model.to(device)
     reg_model.eval()
+    logging.debug("Networks initialized")
 
+    return embedding_model, reg_model, device
+
+
+def aiupred_disorder(sequence, force_cpu=False, gpu_num=0):
+    """
+    Library function to carry out single sequence analysis
+    :param sequence: Amino acid sequence in a string
+    :param force_cpu: Force the method to run on CPU only mode
+    :param gpu_num: Index of the GPU to use, default=0
+    :return: Numpy array with disorder propensities for each position
+    """
+    embedding_model, reg_model, device = init_models(force_cpu, gpu_num)
     return predict_disorder(sequence, embedding_model, reg_model, device)
 
 
@@ -165,24 +177,7 @@ def main(multifasta_file, force_cpu=False, gpu_num=0):
     :param gpu_num: Index of the GPU to use, default=0
     :return: Dictionary with parsed sequences and predicted results
     """
-    device = torch.device(f'cuda:{gpu_num}' if torch.cuda.is_available() else 'cpu')
-    if force_cpu:
-        device = 'cpu'
-    logging.debug(f'Running on {device}')
-    if device == 'cpu':
-        print('# Warning: No GPU found, running on CPU. It is advised to run AIUPred on a GPU')
-
-    embedding_model = TransformerModel()
-    embedding_model.load_state_dict(torch.load(f'{PATH}/data/embedding.pt', map_location=device))
-    embedding_model.to(device)
-    embedding_model.eval()
-
-    reg_model = RegModel()
-    reg_model.load_state_dict(torch.load(f'{PATH}/data/regression.pt', map_location=device))
-    reg_model.to(device)
-    reg_model.eval()
-
-    logging.debug("Networks initialized")
+    embedding_model, reg_model, device = init_models(force_cpu, gpu_num)
     sequences = multifasta_reader(multifasta_file)
     logging.debug("Sequences read")
     if not sequences:

@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("-i", "--input_file",
                     help="Input file in (multi) FASTA format",
-                    required=True)
+                    required=True, type=argparse.FileType('r', encoding='UTF-8'))
 parser.add_argument("-o", "--output_file",
                     help="Output file")
 parser.add_argument("-v", "--verbose",
@@ -23,14 +23,8 @@ parser.add_argument("--force-cpu",
                     action="store_true")
 
 args = parser.parse_args()
-# logging.basicConfig(format='%(asctime)s | %(message)s')
 if args.verbose:
     logging.basicConfig(level=logging.DEBUG, format='# %(asctime)s | %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-
-try:
-    open(args.input_file)
-except FileNotFoundError as exc:
-    print('{}: {}'.format(type(exc).__name__, exc))
 
 
 output_str = '''# AIUPred v0.9
