@@ -27,9 +27,18 @@ if args.verbose:
     logging.basicConfig(level=logging.DEBUG, format='# %(asctime)s | %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 
-output_str = '''# AIUPred v0.9
+output_str = '''#             _____ _    _ _____              _ 
+#       /\   |_   _| |  | |  __ \            | |
+#      /  \    | | | |  | | |__) | __ ___  __| |
+#     / /\ \   | | | |  | |  ___/ '__/ _ \/ _` |
+#    / ____ \ _| |_| |__| | |   | | |  __/ (_| |
+#   /_/    \_\_____|\____/|_|   |_|  \___|\__,_|
+#
 # Gabor Erdos, Zsuzsanna Dosztanyi
-# For in house use only\n\n'''
+# For in house use only\n'''
+print(output_str)
+if not args.output_file:
+    output_str = ''
 for ident, results in aiupred_lib.main(args.input_file,
                                        force_cpu=args.force_cpu,
                                        gpu_num=args.gpu).items():
@@ -37,7 +46,7 @@ for ident, results in aiupred_lib.main(args.input_file,
     for pos, value in enumerate(results['aiupred']):
         output_str += f'{pos+1}\t{results["sequence"][pos]}\t{value:.4f}\n'
     output_str += '\n\n'
-
+logging.info('Analysis done, writing output')
 if args.output_file:
     with open(args.output_file, 'w') as file_handler:
         file_handler.write(output_str.strip())

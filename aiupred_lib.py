@@ -72,6 +72,7 @@ class RegModel(nn.Module):
         return torch.squeeze(output)
 
 
+@torch.no_grad()
 def tokenize(sequence, device):
     """
     Tokenize an amino acid sequence. Non-standard amino acids are treated as X
@@ -79,7 +80,7 @@ def tokenize(sequence, device):
     :param device: Device to run on. CUDA{x} or CPU
     :return: Tokenized tensors
     """
-    return torch.tensor([AA_CODE.index(aa) if aa in AA_CODE else 20 for aa in sequence]).to(device)
+    return torch.tensor([AA_CODE.index(aa) if aa in AA_CODE else 20 for aa in sequence], device=device)
 
 
 def predict_disorder(sequence, energy_model, regression_model, device):
@@ -152,6 +153,7 @@ def init_models(force_cpu=False, gpu_num=0):
     reg_model.load_state_dict(torch.load(f'{PATH}/data/regression.pt', map_location=device))
     reg_model.to(device)
     reg_model.eval()
+
     logging.debug("Networks initialized")
 
     return embedding_model, reg_model, device
@@ -180,15 +182,20 @@ def main(multifasta_file, force_cpu=False, gpu_num=0):
     embedding_model, reg_model, device = init_models(force_cpu, gpu_num)
     sequences = multifasta_reader(multifasta_file)
     logging.debug("Sequences read")
+    logging.info(f'{len(sequences)} sequences read')
     if not sequences:
         raise ValueError("FASTA file is empty")
     results = {}
     logging.StreamHandler.terminator = ""
     for num, (ident, sequence) in enumerate(sequences.items()):
+        if len(sequence) > 2000:
+            continue
         results[ident] = {}
         results[ident]['aiupred'] = predict_disorder(sequence, embedding_model, reg_model, device)
         results[ident]['sequence'] = sequence
         logging.debug(f'{num}/{len(sequences)} sequences done...\r')
+        if num > 100:
+            break
     logging.StreamHandler.terminator = '\n'
     logging.debug(f'Analysis done, writing output')
     return results
