@@ -1,7 +1,98 @@
-# AIUPred disorder prediction method v0.9
+# AIUPred 
+disorder prediction method v0.9
 
-For in-house use only
+[Single sequence prediction](#single_pred)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+aa
+aa
+a
+a
+
+
+
+
+aa
+a
+a
+
+
+
+
+a
+aa
+a
+a
+a
+a
+a
+
+
+a
+a
+a
+a
+a
+
+a
+a
+
+a
+
+
+a
+a
+a
+
+a
+a
+
+a
+
+a
+a
+
+a
+a
+
+a
+a
+
+a
+a
+
+a
+a
+a
+
+
+## <a name="single_pred">Predict single sequence</a>
 ## Architecture
 
 AIUPred utilizes the original IUPred force-field.

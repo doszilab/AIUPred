@@ -1,13 +1,14 @@
 import logging
-
+from scipy.signal import savgol_filter
 import torch
 from torch import nn, Tensor
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 from torch.nn.functional import pad
 import math
 import os
+import numpy as np
 
-PATH = os.path.dirname(os.path.realpath(__file__))
+PATH = os.path.dirname(os.path.abspath(__file__))
 AA_CODE = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
 WINDOW = 100
 
@@ -46,7 +47,7 @@ class TransformerModel(nn.Module):
 
     def forward(self, src: Tensor, embed_only=False) -> Tensor:
         src = self.encoder(src) * math.sqrt(self.d_model)
-        src = self.pos_encoder(src)  # (Batch x Window+1 x Embed_dim
+        src = self.pos_encoder(src)  # (Batch x Window+1 x Embed_dim)
         embedding = self.transformer_encoder(src)
         if embed_only:
             return embedding
@@ -55,20 +56,27 @@ class TransformerModel(nn.Module):
         return torch.squeeze(output)
 
 
-class RegModel(nn.Module):
+class DecoderModel(nn.Module):
     """
     Regression model to estimate disorder propensity from and energy tensor
     """
+
     def __init__(self):
         super().__init__()
-        self.forward_layer = nn.Linear((WINDOW + 1), 8)
-        self.fc_2 = nn.Linear(8, 4)
-        self.fc_3 = nn.Linear(4, 1)
+        input_dim = WINDOW + 1
+        output_dim = 1
+        current_dim = input_dim
+        layer_architecture = [16, 8, 4]
+        self.layers = nn.ModuleList()
+        for hdim in layer_architecture:
+            self.layers.append(nn.Linear(current_dim, hdim))
+            current_dim = hdim
+        self.layers.append(nn.Linear(current_dim, output_dim))
 
-    def forward(self, src: Tensor) -> Tensor:
-        x = torch.relu(self.forward_layer(src))
-        x = torch.relu(self.fc_2(x))
-        output = torch.sigmoid(self.fc_3(x))
+    def forward(self, x: Tensor) -> Tensor:
+        for layer in self.layers[:-1]:
+            x = torch.relu(layer(x))
+        output = torch.sigmoid(self.layers[-1](x))
         return torch.squeeze(output)
 
 
@@ -83,19 +91,48 @@ def tokenize(sequence, device):
     return torch.tensor([AA_CODE.index(aa) if aa in AA_CODE else 20 for aa in sequence], device=device)
 
 
-def predict_disorder(sequence, energy_model, regression_model, device):
+def predict_disorder(sequence, energy_model, regression_model, device, smoothing=None):
     """
     Predict disorder propensity from a sequence using a transformer and a regression model
     :param sequence: Amino acid sequence in string
     :param energy_model: Transformer model
     :param regression_model: regression model
     :param device: Device to run on. CUDA{x} or CPU
+    :param smoothing: Use the SavGol filter to smooth the output
     :return:
     """
     predicted_energies = calculate_energy(sequence, energy_model, device)
     padded_energies = pad(predicted_energies, (WINDOW // 2, WINDOW // 2), 'constant', 0)
     unfolded_energies = padded_energies.unfold(0, WINDOW + 1, 1)
-    return regression_model(unfolded_energies).detach().cpu().numpy()
+    predicted_disorder = regression_model(unfolded_energies).detach().cpu().numpy()
+    if smoothing:
+        predicted_disorder = savgol_filter(predicted_disorder, 11, 5)
+    return predicted_disorder
+
+
+def low_memory_predict(sequence, energy_model, regression_model, device, smoothing=None, chunk_len=1000):
+    """
+    Approximates the prediction on smaller chunks to reduce memory usage
+    :param sequence: Amino acid sequence in string
+    :param energy_model: Transformer model
+    :param regression_model: regression model
+    :param device: Device to run on. CUDA{x} or CPU
+    :param smoothing: Use the SavGol filter to smooth the output
+    :return:
+    """
+    overlap = 100
+    if chunk_len <= overlap:
+        raise ValueError("Chunk len must be bigger than 200!")
+    overlapping_predictions = []
+    for chunk in range(0, len(sequence), chunk_len-overlap):
+        overlapping_predictions.append(predict_disorder(
+            sequence[chunk:chunk+chunk_len],
+            energy_model,
+            regression_model,
+            device
+        ))
+    prediction = np.concatenate((overlapping_predictions[0], *[x[overlap:] for x in overlapping_predictions[1:]]))
+    return prediction
 
 
 def calculate_energy(sequence, energy_model, device):
@@ -115,7 +152,6 @@ def calculate_energy(sequence, energy_model, device):
 def multifasta_reader(file_handler):
     """
     (multi) FASTA reader function
-    :param file_location: Location of (multi) FASTA formatted file
     :return: Dictionary with header -> sequence mapping from the file
     """
     sequence_dct = {}
@@ -138,6 +174,7 @@ def init_models(force_cpu=False, gpu_num=0):
     :return: Tuple of (embedding_model, regression_model, device)
     """
     device = torch.device(f'cuda:{gpu_num}' if torch.cuda.is_available() else 'cpu')
+    device = 'cpu'
     if force_cpu:
         device = 'cpu'
     logging.debug(f'Running on {device}')
@@ -149,8 +186,8 @@ def init_models(force_cpu=False, gpu_num=0):
     embedding_model.to(device)
     embedding_model.eval()
 
-    reg_model = RegModel()
-    reg_model.load_state_dict(torch.load(f'{PATH}/data/regression.pt', map_location=device))
+    reg_model = DecoderModel()
+    reg_model.load_state_dict(torch.load(f'{PATH}/data/decoder.pt', map_location=device))
     reg_model.to(device)
     reg_model.eval()
 

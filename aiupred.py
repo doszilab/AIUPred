@@ -35,7 +35,7 @@ output_str = '''#             _____ _    _ _____              _
 #   /_/    \_\_____|\____/|_|   |_|  \___|\__,_|
 #
 # Gabor Erdos, Zsuzsanna Dosztanyi
-# For in house use only\n'''
+# v0.9, Submitted to NAR Webserver issue 2024\n'''
 print(output_str)
 if not args.output_file:
     output_str = ''
