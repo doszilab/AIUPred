@@ -1,5 +1,5 @@
-# AIUPred 
-disorder prediction method v0.9
+# <p style="text-align: center;">AIUPred</p> 
+## <p style="text-align: center;">disorder prediction method 
 
 [About](#about)
 
