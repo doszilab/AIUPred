@@ -1,5 +1,4 @@
-# <p style="text-align: center;">AIUPred</p> 
-## <p style="text-align: center;">disorder prediction method 
+# AIUPred
 
 [About](#about)
 
@@ -14,7 +13,7 @@
 
 ## <a name="about">About</a>
 
-Intrinsically disordered proteins (IDPs) have no single well-defined tertiary structure under native conditions. AIUPred is a tool that allows to identify disordered protein regions. 
+Intrinsically disordered proteins (IDPs) have no single well-defined tertiary structure under native conditions. AIUPred is a tool that allows to identify disordered protein regions created by Zsuzsanna Dosztányi and Gábor Erdős. 
 
 AIUPred contains a standalone executable script as well as and importable python library.
 
