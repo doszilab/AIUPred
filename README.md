@@ -1,7 +1,7 @@
 # AIUPred 
 disorder prediction method v0.9
 
-[About](#abour)
+[About](#about)
 
 [How to install](#install)
 
@@ -118,7 +118,7 @@ prediction = aiupred_lib.low_memory_predict(sequence, embedding_model, regressio
 Please note, that the results of the low memory version differ from the original!
 
 
-## <a name="benchamrk">Benchmarks</a>
+## <a name="benchmark">Benchmarks</a>
 
 |     | Type            | Single sequence | Human proteome          |   
 |-----|-------------|-----------------|-------------------------|
