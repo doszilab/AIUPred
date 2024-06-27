@@ -138,3 +138,5 @@ GPU memory usage:
 ![plot](./imgs/P04637.png)
 
 ![plot](./imgs/P35222.png)
+
+AIUPred is free to use for academic users
