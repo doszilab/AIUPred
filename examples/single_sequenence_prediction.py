@@ -1,0 +1,19 @@
+import aiupred_lib
+
+# Sequence of human P53 protein
+sequence = """MEEPQSDPSVEPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGP
+DEAPRMPEAAPPVAPAPAAPTPAAPAPAPSWPLSSSVPSQKTYQGSYGFRLGFLHSGTAK
+SVTCTYSPALNKMFCQLAKTCPVQLWVDSTPPPGTRVRAMAIYKQSQHMTEVVRRCPHHE
+RCSDSDGLAPPQHLIRVEGNLRVEYLDDRNTFRHSVVVPYEPPEVGSDCTTIHYNYMCNS
+SCMGGMNRRPILTIITLEDSSGNLLGRNSFEVRVCACPGRDRRTEEENLRKKGEPHHELP
+PGSTKRALPNNTSSSPQPKKKPLDGEYFTLQIRGRERFEMFRELNEALELKDAQAGKEPG
+GSRAHSSHLKSKKGQSTSRHKKLMFKTEGPDSD"""
+sequence = "".join(sequence.splitlines())
+
+# Predict the disorder profile using AIUPred
+disorder_propensities = aiupred_lib.aiupred_binding(sequence)
+print(disorder_propensities)
+
+# Predict binding propensities using AIUPred-binding
+binding_propensities = aiupred_lib.aiupred_binding(sequence)
+print(binding_propensities)

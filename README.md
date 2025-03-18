@@ -8,6 +8,8 @@
 
 [AIUPred as an importable library](#multi_pred)
 
+[Examples](#examples)
+
 [Benchmarks](#benchmark)
 
 
@@ -26,6 +28,7 @@ For more information please refer to the publication: [AIUPred: combining energy
 ```
 torch~=2.0.1
 numpy~=1.26.0
+scipy~=1.13.0
 ```
 
 ## <a name="install">How to install</a>
@@ -35,8 +38,6 @@ numpy~=1.26.0
 After the environment is ready install the required libraries:
 
 `pip3 install -r requirements.txt`
-
-
 
 ## <a name="single_pred">How to run</a>
 
@@ -50,10 +51,6 @@ In order to carry out an analysis use the following command
 Expected output:
 
 ```
-# AIUPred v0.9
-# Gabor Erdos, Zsuzsanna Dosztanyi
-# For in house use only
-
 >sp|P04637|P53_HUMAN Cellular tumor antigen p53 OS=Homo sapiens OX=9606 GN=TP53 PE=1 SV=4
 1       M       0.8014
 2       E       0.8527
@@ -74,11 +71,11 @@ Available options for the executable are the following:
 Input file in (multi) FASTA format
 -o OUTPUT_FILE, --output_file OUTPUT_FILE
 Output file
+-b, --binding         Predict binding using AIUPred-binding
 -v, --verbose         Increase output verbosity
 -g GPU, --gpu GPU     Index of GPU to use, default=0
 --force-cpu           Force the network to only utilize the CPU. Calculation will be very slow, not recommended
 ```
-
 
 ## <a name="multi_pred">Programmatic usage</a>
 
@@ -87,10 +84,22 @@ AIUPred contains a loadable python library. The following section gives some tip
 `export PYTHONPATH="${PYTHONPATH}:/path/to/aiupred/folder"`
 
 After reloading the shell AIUPred will be importable in your python scripts.
+
+The simplest way to execute AIUPred from the library is to call the `aiupred_disorder()` function. This loads all the required network data and executes the prediction.
+
+```python
+import aiupred_lib
+sequence = 'THISISATESTSEQENCE'
+# Predict the disorder profile using AIUPred
+aiupred_lib.aiupred_binding(sequence)
+```
+
+In order to analyze multiple sequences it is recommended to load the network data into memory and keep it there.
+
 ```python
 import aiupred_lib
 # Load the models and let AIUPred find if a GPU is available.     
-embedding_model, regression_model, device = aiupred_lib.init_models()
+embedding_model, regression_model, device = aiupred_lib.init_models('disorder')
 # Predict disorder of a sequence
 sequence = 'THISISATESTSEQENCE'
 prediction = aiupred_lib.predict_disorder(sequence, embedding_model, regression_model, device,
@@ -108,14 +117,17 @@ chunks of the input protein to save memory, then concatenates the results
 ```python
 import aiupred_lib
 # Load the models and let AIUPred find if a GPU is available.     
-embedding_model, regression_model, device = aiupred_lib.init_models()
+embedding_model, regression_model, device = aiupred_lib.init_models('disorder')
 # Predict disorder of a sequence
 sequence = 'THISISATESTSEQENCE'
-prediction = aiupred_lib.low_memory_predict(sequence, embedding_model, regression_model, device,
+prediction = aiupred_lib.low_memory_predict_disorder(sequence, embedding_model, regression_model, device,
                                           smoothing='savgol')
 ```
 Please note, that the results of the low memory version differ from the original!
 
+## <a name="examples">Examples</a>
+
+Example scripts can be found in the 'examples' library
 
 ## <a name="benchmark">Benchmarks</a>
 
