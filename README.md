@@ -145,10 +145,5 @@ GPU memory usage:
 | 6         | 8000     | 
 | 12        | 16000    |  
 
-## Testing
-
-![plot](./imgs/P04637.png)
-
-![plot](./imgs/P35222.png)
 
 AIUPred is free to use for academic users
