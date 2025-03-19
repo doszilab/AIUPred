@@ -233,6 +233,6 @@ GPU memory usage:
 | 6         | 8000     | 
 | 12        | 16000    |  
 
-##  <a name=""License>License</a>
+##  <a name="license">License</a>
 
 This project is licensed under the MIT License. See the LICENSE file for details.
