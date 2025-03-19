@@ -10,7 +10,11 @@
 
 [Examples](#examples)
 
+[Functions](#functions)
+
 [Benchmarks](#benchmark)
+
+[License](#license)
 
 
 ## <a name="about">About</a>
@@ -129,6 +133,90 @@ Please note, that the results of the low memory version differ from the original
 
 Example scripts can be found in the 'examples' library
 
+## <a name="functions">Functions</a>
+
+`aiupred_disorder(sequence, force_cpu=False, gpu_num=0)`
+
+Predicts disorder propensities for a given amino acid sequence.
+
+- `sequence`: Amino acid sequence as a string.
+- `force_cpu`: Force the method to run on CPU only mode (default: False).
+- `gpu_num`: Index of the GPU to use (default: 0).
+
+`aiupred_binding(sequence, force_cpu=False, gpu_num=0)`
+
+Predicts binding propensities for a given amino acid sequence.
+
+- `sequence`: Amino acid sequence as a string.
+- `force_cpu`: Force the method to run on CPU only mode (default: False).
+- `gpu_num`: Index of the GPU to use (default: 0).
+
+`main(multifasta_file, force_cpu=False, gpu_num=0, binding=False)`
+
+Predicts disorder or binding propensities for sequences in a FASTA file.
+
+- `multifasta_file`: Location of (multi) FASTA formatted sequences.
+- `force_cpu`: Force the method to run on CPU only mode (default: False).
+- `gpu_num`: Index of the GPU to use (default: 0).
+- `binding`: Predict binding propensities if True, otherwise predict disorder propensities (default: False).
+
+### Models
+
+`TransformerModel`
+
+Transformer model to estimate positional contact potential from an amino acid sequence.
+
+`BindingTransformerModel`
+
+Transformer model for binding prediction.
+
+`BindingDecoderModel`
+
+Decoder model for binding prediction.
+
+`DecoderModel`
+
+Regression model to estimate disorder propensity from an energy tensor.
+
+### Helper Functions
+
+`tokenize(sequence, device)`
+
+Tokenizes an amino acid sequence.
+
+`predict_disorder(sequence, energy_model, regression_model, device, smoothing=None)`
+
+Predicts disorder propensity from a sequence using a transformer and a regression model.
+
+`calculate_energy(sequence, energy_model, device)`
+
+Calculates residue energy from a sequence using a transformer network.
+
+`predict_binding(sequence, embedding_model, decoder_model, device, smoothing=None, energy_only=False, binding=False)`
+
+Predicts binding propensity from a sequence using a transformer and a decoder model.
+
+`low_memory_predict_disorder(sequence, embedding_model, decoder_model, device, smoothing=None, chunk_len=1000)`
+
+Predicts disorder propensity for long sequences using a low memory approach.
+
+`low_memory_predict_binding(sequence, embedding_model, decoder_model, device, smoothing=None, chunk_len=1000)`
+
+Predicts binding propensity for long sequences using a low memory approach.
+
+`binding_transform(prediction, smoothing=True)`
+
+Transforms binding predictions.
+
+`multifasta_reader(file_handler)`
+
+Reads sequences from a (multi) FASTA file.
+
+`init_models(prediction_type, force_cpu=False, gpu_num=0)`
+
+Initializes networks and device to run on.
+
+
 ## <a name="benchmark">Benchmarks</a>
 
 |     | Type            | Single sequence | Human proteome          |   
@@ -145,5 +233,6 @@ GPU memory usage:
 | 6         | 8000     | 
 | 12        | 16000    |  
 
+##  <a name=""License>License</a>
 
-AIUPred is free to use for academic users
+This project is licensed under the MIT License. See the LICENSE file for details.
