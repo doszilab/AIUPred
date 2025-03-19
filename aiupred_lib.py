@@ -19,6 +19,7 @@ class PositionalEncoding(nn.Module):
     """
     Positional encoding for the Transformer network
     """
+
     def __init__(self, d_model, max_len=5000):
         super(PositionalEncoding, self).__init__()
 
@@ -38,6 +39,7 @@ class TransformerModel(nn.Module):
     """
     Transformer model to estimate positional contact potential from an amino acid sequence
     """
+
     def __init__(self):
         super().__init__()
         self.d_model = 32
@@ -56,8 +58,8 @@ class TransformerModel(nn.Module):
         output = torch.flatten(embedding, 1)
         output = self.decoder(output)
         return torch.squeeze(output)
-    
-    
+
+
 class BindingTransformerModel(nn.Module):
     def __init__(self):
         super().__init__()
@@ -78,7 +80,7 @@ class BindingTransformerModel(nn.Module):
         output = torch.flatten(embedding, 1)
         output = self.decoder(output)
         return torch.squeeze(output)
-    
+
 
 class BindingDecoderModel(nn.Module):
     def __init__(self):
@@ -150,7 +152,7 @@ def predict_disorder(sequence, energy_model, regression_model, device, smoothing
     padded_energies = pad(predicted_energies, (WINDOW // 2, WINDOW // 2), 'constant', 0)
     unfolded_energies = padded_energies.unfold(0, WINDOW + 1, 1)
     predicted_disorder = regression_model(unfolded_energies).detach().cpu().numpy()
-    if smoothing and len(sequence)>10:
+    if smoothing and len(sequence) > 10:
         predicted_disorder = savgol_filter(predicted_disorder, 11, 5)
     return predicted_disorder
 
@@ -189,15 +191,15 @@ def predict_binding(sequence, embedding_model, decoder_model, device, smoothing=
 
 def low_memory_predict_disorder(sequence, embedding_model, decoder_model, device, smoothing=None, chunk_len=1000):
     overlap = 100
-    if (len(sequence)-1) % (chunk_len-overlap) == 0:
+    if (len(sequence) - 1) % (chunk_len - overlap) == 0:
         logging.warning('Chunk length decreased by 1 to fit sequence length')
         chunk_len -= 1
     if chunk_len <= overlap:
         raise ValueError("Chunk len must be bigger than 200!")
     overlapping_predictions = []
-    for chunk in range(0, len(sequence), chunk_len-overlap):
+    for chunk in range(0, len(sequence), chunk_len - overlap):
         overlapping_predictions.append(predict_disorder(
-            sequence[chunk:chunk+chunk_len],
+            sequence[chunk:chunk + chunk_len],
             embedding_model,
             decoder_model,
             device,
@@ -208,15 +210,14 @@ def low_memory_predict_disorder(sequence, embedding_model, decoder_model, device
     return savgol_filter(transformed_pred, 11, 5)
 
 
-
 def low_memory_predict_binding(sequence, embedding_model, decoder_model, device, smoothing=None, chunk_len=1000):
     overlap = 100
     if chunk_len <= overlap:
         raise ValueError("Chunk len must be bigger than 200!")
     overlapping_predictions = []
-    for chunk in range(0, len(sequence), chunk_len-overlap):
+    for chunk in range(0, len(sequence), chunk_len - overlap):
         overlapping_predictions.append(predict_binding(
-            sequence[chunk:chunk+chunk_len],
+            sequence[chunk:chunk + chunk_len],
             embedding_model,
             decoder_model,
             device
@@ -231,8 +232,8 @@ def binding_transform(prediction, smoothing=True):
     with open(f'{PATH}/data/binding_transform') as fn:
         for line in fn:
             key, value = line.strip().split()
-            transform[int(float(key)*1000)] = float(value)
-    rounded_pred = np.rint(prediction*1000)
+            transform[int(float(key) * 1000)] = float(value)
+    rounded_pred = np.rint(prediction * 1000)
     transformed_pred = np.vectorize(transform.get)(rounded_pred)
     if not smoothing:
         return transformed_pred
@@ -311,7 +312,6 @@ def aiupred_binding(sequence, force_cpu=False, gpu_num=0):
     return predict_binding(sequence, embedding_model, reg_model, device, binding=True, smoothing=True)
 
 
-
 def main(multifasta_file, force_cpu=False, gpu_num=0, binding=False):
     """
     Main function to be called from aiupred.py
@@ -320,8 +320,7 @@ def main(multifasta_file, force_cpu=False, gpu_num=0, binding=False):
     :param gpu_num: Index of the GPU to use, default=0
     :return: Dictionary with parsed sequences and predicted results
     """
-    analysis_type = 'disorder' if not binding else 'binding'
-    embedding_model, reg_model, device = init_models(analysis_type, force_cpu, gpu_num)
+    embedding_model, reg_model, device = init_models('disorder', force_cpu, gpu_num)
     sequences = multifasta_reader(multifasta_file)
     logging.debug("Sequences read")
     logging.info(f'{len(sequences)} sequences read')
@@ -331,10 +330,12 @@ def main(multifasta_file, force_cpu=False, gpu_num=0, binding=False):
     logging.StreamHandler.terminator = ""
     for num, (ident, sequence) in enumerate(sequences.items()):
         results[ident] = {}
-        if analysis_type == 'disorder':
-            results[ident]['aiupred'] = predict_disorder(sequence, embedding_model, reg_model, device, smoothing=True)
-        else:
-            results[ident]['aiupred'] = predict_binding(sequence, embedding_model, reg_model, device, binding=binding, smoothing=True)
+        results[ident]['aiupred'] = predict_disorder(sequence, embedding_model, reg_model, device, smoothing=True)
+        if binding:
+            binding_embedding, binding_regression, _ = init_models('binding', force_cpu, gpu_num)
+            results[ident]['aiupred-binding'] = predict_binding(sequence, binding_embedding, binding_regression, device,
+                                                                binding=binding,
+                                                                smoothing=True)
         results[ident]['sequence'] = sequence
         logging.debug(f'{num}/{len(sequences)} sequences done...\r')
     logging.StreamHandler.terminator = '\n'
