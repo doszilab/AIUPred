@@ -97,7 +97,7 @@ The simplest way to execute AIUPred from the library is to call the `aiupred_dis
 import aiupred_lib
 sequence = 'THISISATESTSEQENCE'
 # Predict the disorder profile using AIUPred
-aiupred_lib.aiupred_binding(sequence)
+aiupred_lib.aiupred_disorder(sequence)
 ```
 
 In order to analyze multiple sequences it is recommended to load the network data into memory and keep it there.
@@ -109,7 +109,7 @@ embedding_model, regression_model, device = aiupred_lib.init_models('disorder')
 # Predict disorder of a sequence
 sequence = 'THISISATESTSEQENCE'
 prediction = aiupred_lib.predict_disorder(sequence, embedding_model, regression_model, device,
-                                          smoothing='savgol')
+                                          smoothing=True)
 ```
 
 The bottleneck of the method in terms of speed is the loading of `embedding_model` and `regression_model` 
@@ -127,7 +127,7 @@ embedding_model, regression_model, device = aiupred_lib.init_models('disorder')
 # Predict disorder of a sequence
 sequence = 'THISISATESTSEQENCE'
 prediction = aiupred_lib.low_memory_predict_disorder(sequence, embedding_model, regression_model, device,
-                                          smoothing='savgol')
+                                          smoothing=True)
 ```
 Please note, that the results of the low memory version differ from the original!
 
@@ -136,6 +136,58 @@ Please note, that the results of the low memory version differ from the original
 AIUPred-binding is also a part of the downloadable package. For command lise usage use the `-b` flag:
 
 `python3 aiupred.py -i test.fasta -b`
+
+Expected output:
+
+```
+>sp|P04637|P53_HUMAN Cellular tumor antigen p53 OS=Homo sapiens OX=9606 GN=TP53 PE=1 SV=4
+1       M       0.8669
+2       E       0.6927
+3       E       0.5133
+4       P       0.3790
+5       Q       0.3011
+6       S       0.2671
+7       D       0.2229
+8       P       0.2326
+...
+```
+
+### AIUPred-binding programmatic usage:
+
+In order to use AIUPred-binding programmatically the functions and their usage is identical to disorder prediction:
+
+
+```python
+import aiupred_lib
+sequence = 'THISISATESTSEQENCE'
+# Predict the disorder profile using AIUPred
+aiupred_lib.aiupred_binding(sequence)
+```
+
+In order to analyze multiple sequences it is recommended to load the network data into memory and keep it there.
+
+```python
+import aiupred_lib
+# Load the models and let AIUPred find if a GPU is available.     
+embedding_model, regression_model, device = aiupred_lib.init_models('binding')
+# Predict disorder of a sequence
+sequence = 'THISISATESTSEQENCE'
+prediction = aiupred_lib.predict_binding(sequence, embedding_model, regression_model, device,
+                                          smoothing=True)
+```
+
+For low memory prediction use:
+
+```python
+import aiupred_lib
+# Load the models and let AIUPred find if a GPU is available.     
+embedding_model, regression_model, device = aiupred_lib.init_models('binding')
+# Predict disorder of a sequence
+sequence = 'THISISATESTSEQENCE'
+prediction = aiupred_lib.low_memory_predict_binding(sequence, embedding_model, regression_model, device,
+                                          smoothing=True)
+```
+Please note, that the results of the low memory version differ from the original!
 
 ## <a name="examples">Examples</a>
 
