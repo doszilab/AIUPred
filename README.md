@@ -137,7 +137,7 @@ Please note, that the results of the low memory version differ from the original
 
 ## <a name="binding">AIUPred-binding</a>
 
-AIUPred-binding is also a part of the downloadable package. For command lise usage use the `-b` flag:
+AIUPred-binding is also a part of the downloadable package. For command line usage use the `-b` flag:
 
 `python3 aiupred.py -i test.fasta -b`
 
