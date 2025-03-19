@@ -8,6 +8,8 @@
 
 [AIUPred as an importable library](#multi_pred)
 
+[AIUPred-binding][#binding]
+
 [Examples](#examples)
 
 [Functions](#functions)
@@ -128,6 +130,12 @@ prediction = aiupred_lib.low_memory_predict_disorder(sequence, embedding_model, 
                                           smoothing='savgol')
 ```
 Please note, that the results of the low memory version differ from the original!
+
+## <a name="binding">AIUPred-binding</a>
+
+AIUPred-binding is also a part of the downloadable package. For command lise usage use the `-b` flag:
+
+`python3 aiupred.py -i test.fasta -b`
 
 ## <a name="examples">Examples</a>
 

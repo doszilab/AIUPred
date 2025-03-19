@@ -332,9 +332,9 @@ def main(multifasta_file, force_cpu=False, gpu_num=0, binding=False):
     for num, (ident, sequence) in enumerate(sequences.items()):
         results[ident] = {}
         if analysis_type == 'disorder':
-            results[ident]['aiupred'] = predict_disorder(sequence, embedding_model, reg_model, device)
+            results[ident]['aiupred'] = predict_disorder(sequence, embedding_model, reg_model, device, smoothing=True)
         else:
-            results[ident]['aiupred'] = predict_binding(sequence, embedding_model, reg_model, device, binding=binding)
+            results[ident]['aiupred'] = predict_binding(sequence, embedding_model, reg_model, device, binding=binding, smoothing=True)
         results[ident]['sequence'] = sequence
         logging.debug(f'{num}/{len(sequences)} sequences done...\r')
     logging.StreamHandler.terminator = '\n'
