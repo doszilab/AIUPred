@@ -39,6 +39,10 @@ scipy~=1.13.0
 
 ## <a name="install">How to install</a>
 
+Clone the repository: `git clone https://github.com/doszilab/AIUPred`
+
+Change the working directory to the downloaded folder
+
 <b>It is recommended to use a virtual environment</b>
 
 After the environment is ready install the required libraries:
