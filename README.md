@@ -8,7 +8,7 @@
 
 [AIUPred as an importable library](#multi_pred)
 
-[AIUPred-binding][#binding]
+[AIUPred-binding](#binding)
 
 [Examples](#examples)
 
