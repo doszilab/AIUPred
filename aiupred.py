@@ -52,21 +52,22 @@ output_str += "# Position\tResidue\tDisorder"
 if args.binding:
     output_str += '\tBinding'
 output_str += '\n'
+result_text = []
 logging.info('Starting analysis')
 for ident, results in aiupred_lib.main(args.input_file,
                                        force_cpu=args.force_cpu,
                                        gpu_num=args.gpu,
                                        binding=args.binding).items():
-    output_str += '#' + ident + '\n'
+    result_text.append('#' + ident + '\n')
     for pos, value in enumerate(results['aiupred']):
-        output_str += f'{pos+1}\t{results["sequence"][pos]}\t{value:.4f}'
+        result_text.append(f'{pos+1}\t{results["sequence"][pos]}\t{value:.4f}')
         if args.binding:
-            output_str += f'\t{results["aiupred-binding"][pos]:.4f}'
-        output_str += '\n'
-    output_str += '\n\n'
+            result_text.append(f'\t{results["aiupred-binding"][pos]:.4f}')
+        result_text.append('\n')
+    result_text.append('\n\n')
 logging.info('Analysis done, writing output')
 if args.output_file:
     with open(args.output_file, 'w') as file_handler:
-        file_handler.write(output_str.strip())
+        file_handler.write(output_str.strip() + '\n' + ''.join(result_text))
 else:
-    print(output_str.strip())
+    print(output_str.strip() + '\n' + ''.join(result_text))
