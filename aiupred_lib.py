@@ -182,11 +182,7 @@ def predict_binding(sequence, embedding_model, decoder_model, device, smoothing=
     _unfolded_embedding = _padded_embed.unfold(0, WINDOW + 1, 1)
     _decoder_input = _unfolded_embedding.permute(0, 2, 1, 3)
     _prediction = decoder_model(_decoder_input).detach().cpu().numpy()
-    if binding:
-        return binding_transform(_prediction, smoothing=smoothing)
-    if not smoothing or len(sequence) <= 10:
-        return _prediction
-    return savgol_filter(transformed_pred, 11, 5)
+    return binding_transform(_prediction, smoothing=smoothing)
 
 
 def low_memory_predict_disorder(sequence, embedding_model, decoder_model, device, smoothing=None, chunk_len=1000):

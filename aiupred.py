@@ -30,7 +30,7 @@ if args.verbose:
     logging.basicConfig(level=logging.DEBUG, format='# %(asctime)s | %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 
-output_str = '''#             _____ _    _ _____              _ 
+output_str = r'''#             _____ _    _ _____              _ 
 #       /\   |_   _| |  | |  __ \            | |
 #      /  \    | | | |  | | |__) | __ ___  __| |
 #     / /\ \   | | | |  | |  ___/ '__/ _ \/ _` |
