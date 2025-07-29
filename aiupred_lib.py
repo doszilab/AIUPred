@@ -203,7 +203,7 @@ def low_memory_predict_disorder(sequence, embedding_model, decoder_model, device
     prediction = np.concatenate((overlapping_predictions[0], *[x[overlap:] for x in overlapping_predictions[1:]]))
     if not smoothing or len(sequence) <= 10:
         return prediction
-    return savgol_filter(transformed_pred, 11, 5)
+    return savgol_filter(prediction, 11, 5)
 
 
 def low_memory_predict_binding(sequence, embedding_model, decoder_model, device, smoothing=None, chunk_len=1000):
@@ -335,5 +335,5 @@ def main(multifasta_file, force_cpu=False, gpu_num=0, binding=False):
         results[ident]['sequence'] = sequence
         logging.debug(f'{num}/{len(sequences)} sequences done...\r')
     logging.StreamHandler.terminator = '\n'
-    logging.debug(f'Analysis done, writing output')
+    logging.debug('Analysis done, writing output')
     return results

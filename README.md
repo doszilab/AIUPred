@@ -18,6 +18,8 @@
 
 [License](#license)
 
+[How to cite](#cite)
+
 
 ## <a name="about">About</a>
 
@@ -300,3 +302,41 @@ GPU memory usage:
 ##  <a name="license">License</a>
 
 This project is licensed under the MIT License. See the LICENSE file for details.
+
+## <a name="cite">How to cite</a>
+
+### AIUPred
+
+<pre>@article{10.1093/nar/gkae385,
+    author = {Erdős, Gábor and Dosztányi, Zsuzsanna},
+    title = {AIUPred: combining energy estimation with deep learning for the enhanced prediction of protein disorder},
+    journal = {Nucleic Acids Research},
+    volume = {52},
+    number = {W1},
+    pages = {W176-W181},
+    year = {2024},
+    month = {05},
+    abstract = {Intrinsically disordered proteins and protein regions (IDPs/IDRs) carry out important biological functions without relying on a single well-defined conformation. As these proteins are a challenge to study experimentally, computational methods play important roles in their characterization. One of the commonly used tools is the IUPred web server which provides prediction of disordered regions and their binding sites. IUPred is rooted in a simple biophysical model and uses a limited number of parameters largely derived on globular protein structures only. This enabled an incredibly fast and robust prediction method, however, its limitations have also become apparent in light of recent breakthrough methods using deep learning techniques. Here, we present AIUPred, a novel version of IUPred which incorporates deep learning techniques into the energy estimation framework. It achieves improved performance while keeping the robustness of the original method. Based on the evaluation of recent benchmark datasets, AIUPred scored amongst the top three single sequence based methods. With a new web server we offer fast and reliable visual analysis for users as well as options to analyze whole genomes in mere seconds with the downloadable package. AIUPred is available at https://aiupred.elte.hu.},
+    issn = {0305-1048},
+    doi = {10.1093/nar/gkae385},
+    url = {https://doi.org/10.1093/nar/gkae385},
+    eprint = {https://academic.oup.com/nar/article-pdf/52/W1/W176/58435879/gkae385.pdf},
+}</pre>
+
+### AIUPred-binding
+
+<pre>@article{ERDOS2025169071,
+title = {AIUPred – Binding: Energy Embedding to Identify Disordered Binding Regions},
+journal = {Journal of Molecular Biology},
+volume = {437},
+number = {15},
+pages = {169071},
+year = {2025},
+note = {Computation Resources for Molecular Biology},
+issn = {0022-2836},
+doi = {https://doi.org/10.1016/j.jmb.2025.169071},
+url = {https://www.sciencedirect.com/science/article/pii/S0022283625001378},
+author = {Gábor Erdős and Norbert Deutsch and Zsuzsanna Dosztányi},
+keywords = {Protein disorder, Functional disorder, Disorder binding prediction, Functional disorder prediction, Energy embedding},
+abstract = {Intrinsically disordered regions (IDRs) play critical roles in various cellular processes, often mediating interactions through disordered binding regions that transition to ordered states. Experimental characterization of these functional regions is highly challenging, underscoring the need for fast and accurate computational tools. Despite their importance, predicting disordered binding regions remains a significant challenge due to limitations in existing datasets and methodologies. In this study, we introduce AIUPred-binding, a novel prediction tool leveraging a high dimensional mathematical representation of structural energies – we call energy embedding – and pathogenicity scores from AlphaMissense. By employing a transfer learning approach, AIUPred-binding demonstrates improved accuracy in identifying functional sites within IDRs. Our results highlight the tool’s ability to discern subtle features within disordered regions, addressing biases and other challenges associated with manually curated datasets. We present AIUPred-binding integrated into the AIUPred web framework as a versatile and efficient resource for understanding the functional roles of IDRs. AIUPred-binding is freely accessible at https://aiupred.elte.hu.}
+}</pre>
