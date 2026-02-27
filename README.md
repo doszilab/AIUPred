@@ -1,297 +1,156 @@
 # AIUPred
 
-[About](#about)
-
-[How to install](#install)
-
-[How to run](#single_pred)
-
-[AIUPred as an importable library](#multi_pred)
-
-[AIUPred-binding](#binding)
-
-[Examples](#examples)
-
-[Functions](#functions)
-
-[Benchmarks](#benchmark)
-
-[License](#license)
-
-[How to cite](#cite)
-
+[About](#about) | [How to install](#install) | [Command Line Usage](#cli_usage) | [Programmatic Usage (Python API)](#api_usage) | [API Reference](#api_ref) | [Benchmarks](#benchmark) | [License](#license) | [How to cite](#cite)
 
 ## <a name="about">About</a>
 
-Intrinsically disordered proteins (IDPs) have no single well-defined tertiary structure under native conditions. AIUPred is a tool that allows to identify disordered protein regions created by Zsuzsanna Dosztányi and Gábor Erdős. 
+Intrinsically disordered proteins (IDPs) have no single well-defined tertiary structure under native conditions. AIUPred is a tool that allows to identify disordered protein regions and their binding sites, created by Zsuzsanna Dosztányi and Gábor Erdős. 
 
-AIUPred contains a standalone executable script as well as and importable python library.
+AIUPred provides both a **standalone command-line interface (CLI)** and an **importable Python library** for seamless integration into bioinformatics pipelines.
 
-AIUPred is also available as a webserver (https://aiupred.elte.hu/)
+AIUPred is also available as a web server: [https://aiupred.elte.hu/](https://aiupred.elte.hu/)
 
 For more information please refer to the publication: [AIUPred: combining energy estimation with deep learning for the enhanced prediction of protein disorder](https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gkae385/7673484)
 
 ### Requirements
+AIUPred requires Python 3.8+ and relies on modern scientific computing libraries (`torch>=2.0.0`, `numpy>=1.21.0`, `scipy>=1.7.0`). These dependencies are **automatically installed** when you install the package via `pip`.
 
-```
-torch~=2.0.1
-numpy~=1.26.0
-scipy~=1.13.0
-```
+---
 
 ## <a name="install">How to install</a>
 
-Clone the repository: `git clone https://github.com/doszilab/AIUPred`
+<b>It is recommended to install AIUPred inside a virtual environment (e.g., Conda or venv).</b>
 
-Change the working directory to the downloaded folder
+Because AIUPred is a standard Python package, you can install it directly from GitHub using `pip`:
 
-<b>It is recommended to use a virtual environment</b>
-
-After the environment is ready install the required libraries:
-
-`pip3 install -r requirements.txt`
-
-## <a name="single_pred">How to run</a>
-
-AIUPred contains an executable python script which calls the supplied library as 
-well as a FASTA formatted file containing two protein sequences.
-
-In order to carry out an analysis use the following command
-
-`python3 aiupred.py -i test.fasta`
-
-Expected output:
-
+```bash
+pip install git+https://github.com/doszilab/AIUPred.git
 ```
->sp|P04637|P53_HUMAN Cellular tumor antigen p53 OS=Homo sapiens OX=9606 GN=TP53 PE=1 SV=4
-1       M       0.8014
-2       E       0.8527
-3       E       0.8157
-4       P       0.8313
-5       Q       0.7959
-6       S       0.7855
-7       D       0.8402
-8       P       0.8788
+
+Alternatively, you can clone the repository and install it locally:
+
+```bash
+git clone https://github.com/doszilab/AIUPred.git
+cd AIUPred
+pip install .
+```
+
+---
+
+## <a name="cli_usage">Command Line Usage</a>
+
+Installing AIUPred automatically registers the `aiupred` command in your terminal. You can run it from anywhere on your system.
+
+To carry out a standard disorder analysis on a FASTA file:
+```bash
+aiupred -i test.fasta
+```
+
+To predict **both disorder and binding** (`-b`), and save the results to a file (`-o`):
+```bash
+aiupred -i test.fasta -o results.tsv -b
+```
+
+### Expected Output
+```text
+# Position	Residue	Disorder	Binding
+#sp|P04637|P53_HUMAN Cellular tumor antigen p53 OS=Homo sapiens OX=9606 GN=TP53 PE=1 SV=4
+1	M	0.8014	0.8669
+2	E	0.8527	0.6927
+3	E	0.8157	0.5133
+4	P	0.8313	0.3790
+5	Q	0.7959	0.3011
+6	S	0.7855	0.2671
+7	D	0.8402	0.2229
+8	P	0.8788	0.2326
 ...
 ```
 
-Available options for the executable are the following:
-
+### Available CLI Options
+```text
+options:
+  -h, --help            show this help message and exit
+  -i INPUT_FILE, --input_file INPUT_FILE
+                        Input file in (multi) FASTA format (Required)
+  -o OUTPUT_FILE, --output_file OUTPUT_FILE
+                        Output file
+  -v, --verbose         Increase output verbosity
+  -b, --binding         Predict binding using AIUPred-binding
+  -g GPU, --gpu GPU     Index of GPU to use, default=0
+  --force-cpu           Force the network to only utilize the CPU. Calculation will be very slow.
 ```
--h, --help            show this help message and exit
--i INPUT_FILE, --input_file INPUT_FILE
-Input file in (multi) FASTA format
--o OUTPUT_FILE, --output_file OUTPUT_FILE
-Output file
--b, --binding         Predict binding using AIUPred-binding
--v, --verbose         Increase output verbosity
--g GPU, --gpu GPU     Index of GPU to use, default=0
---force-cpu           Force the network to only utilize the CPU. Calculation will be very slow, not recommended
-```
 
-## <a name="multi_pred">Programmatic usage</a>
+---
 
-AIUPred contains a loadable python library. The following section gives some tips how to use the importable library. First download and extract AIUPred and add its location to your PYTHONPATH environment variable (assuming standard bash shell)
+## <a name="api_usage">Programmatic Usage (Python API)</a>
 
-`export PYTHONPATH="${PYTHONPATH}:/path/to/aiupred/folder"`
+AIUPred is designed to be highly memory-efficient. By initializing the `AIUPred` class, the heavy neural network models are loaded into your GPU (or CPU) exactly **once**, allowing you to process thousands of sequences rapidly.
 
-After reloading the shell AIUPred will be importable in your python scripts.
-
-The simplest way to execute AIUPred from the library is to call the `aiupred_disorder()` function. This loads all the required network data and executes the prediction.
+*Note: AIUPred now **automatically handles memory chunking** for exceptionally long sequences under the hood. You no longer need to call separate "low memory" functions!*
 
 ```python
-import aiupred_lib
-sequence = 'THISISATESTSEQENCE'
-# Predict the disorder profile using AIUPred
-aiupred_lib.aiupred_disorder(sequence)
+from aiupred import AIUPred, multifasta_reader
+
+# 1. Initialize the predictor (Models are loaded into memory here)
+predictor = AIUPred()
+
+sequence = 'THISISATESTSEQUENCE'
+
+# 2. Predict Disorder
+disorder_propensities = predictor.predict_disorder(sequence)
+
+# 3. Predict Binding
+binding_propensities = predictor.predict_binding(sequence)
 ```
 
-In order to analyze multiple sequences it is recommended to load the network data into memory and keep it there.
-
+### Processing a Multi-FASTA File
 ```python
-import aiupred_lib
-# Load the models and let AIUPred find if a GPU is available.     
-embedding_model, regression_model, device = aiupred_lib.init_models('disorder')
-# Predict disorder of a sequence
-sequence = 'THISISATESTSEQENCE'
-prediction = aiupred_lib.predict_disorder(sequence, embedding_model, regression_model, device,
-                                          smoothing=True)
+from aiupred import AIUPred, multifasta_reader
+
+predictor = AIUPred()
+sequences = multifasta_reader('test.fasta')
+
+for header, seq in sequences.items():
+    print(f"Processing {header}...")
+    disorder = predictor.predict_disorder(seq)
+    binding = predictor.predict_binding(seq)
 ```
 
-The bottleneck of the method in terms of speed is the loading of `embedding_model` and `regression_model` 
-so by keeping them in memory we can speed up the analysis significantly for future proteins. 
+---
 
-Depending on the length of the sequence AIUPred can use an 
-excessive amount of memory. In case you run out of memory AIUPred
-is supplied with an approximation function which uses variable length
-chunks of the input protein to save memory, then concatenates the results
+## <a name="api_ref">API Reference</a>
 
-```python
-import aiupred_lib
-# Load the models and let AIUPred find if a GPU is available.     
-embedding_model, regression_model, device = aiupred_lib.init_models('disorder')
-# Predict disorder of a sequence
-sequence = 'THISISATESTSEQENCE'
-prediction = aiupred_lib.low_memory_predict_disorder(sequence, embedding_model, regression_model, device,
-                                          smoothing=True)
-```
-Please note, that the results of the low memory version differ from the original!
+### `class AIUPred(force_cpu=False, gpu_num=0)`
+The core predictor class. Initializes the neural networks and manages the computation device.
+- `force_cpu` *(bool)*: Force the models to run on CPU. (Default: `False`)
+- `gpu_num` *(int)*: The index of the CUDA device to use. (Default: `0`)
 
-## <a name="binding">AIUPred-binding</a>
-
-AIUPred-binding is also a part of the downloadable package. For command line usage use the `-b` flag:
-
-`python3 aiupred.py -i test.fasta -b`
-
-Expected output:
-
-```
->sp|P04637|P53_HUMAN Cellular tumor antigen p53 OS=Homo sapiens OX=9606 GN=TP53 PE=1 SV=4
-1       M       0.8669
-2       E       0.6927
-3       E       0.5133
-4       P       0.3790
-5       Q       0.3011
-6       S       0.2671
-7       D       0.2229
-8       P       0.2326
-...
-```
-
-### AIUPred-binding programmatic usage:
-
-In order to use AIUPred-binding programmatically the functions and their usage is identical to disorder prediction:
-
-
-```python
-import aiupred_lib
-sequence = 'THISISATESTSEQENCE'
-# Predict the disorder profile using AIUPred
-aiupred_lib.aiupred_binding(sequence)
-```
-
-In order to analyze multiple sequences it is recommended to load the network data into memory and keep it there.
-
-```python
-import aiupred_lib
-# Load the models and let AIUPred find if a GPU is available.     
-embedding_model, regression_model, device = aiupred_lib.init_models('binding')
-# Predict disorder of a sequence
-sequence = 'THISISATESTSEQENCE'
-prediction = aiupred_lib.predict_binding(sequence, embedding_model, regression_model, device,
-                                          smoothing=True)
-```
-
-For low memory prediction use:
-
-```python
-import aiupred_lib
-# Load the models and let AIUPred find if a GPU is available.     
-embedding_model, regression_model, device = aiupred_lib.init_models('binding')
-# Predict disorder of a sequence
-sequence = 'THISISATESTSEQENCE'
-prediction = aiupred_lib.low_memory_predict_binding(sequence, embedding_model, regression_model, device,
-                                          smoothing=True)
-```
-Please note, that the results of the low memory version differ from the original!
-
-## <a name="examples">Examples</a>
-
-Example scripts can be found in the 'examples' library
-
-## <a name="functions">Functions</a>
-
-`aiupred_disorder(sequence, force_cpu=False, gpu_num=0)`
-
+#### `predict_disorder(sequence: str, apply_smoothing: bool = True) -> numpy.ndarray`
 Predicts disorder propensities for a given amino acid sequence.
+- `sequence` *(str)*: The amino acid sequence.
+- `apply_smoothing` *(bool)*: Applies Savitzky-Golay filtering to the output if the sequence is >10 residues. (Default: `True`)
 
-- `sequence`: Amino acid sequence as a string.
-- `force_cpu`: Force the method to run on CPU only mode (default: False).
-- `gpu_num`: Index of the GPU to use (default: 0).
-
-`aiupred_binding(sequence, force_cpu=False, gpu_num=0)`
-
+#### `predict_binding(sequence: str, apply_smoothing: bool = True) -> numpy.ndarray`
 Predicts binding propensities for a given amino acid sequence.
-
-- `sequence`: Amino acid sequence as a string.
-- `force_cpu`: Force the method to run on CPU only mode (default: False).
-- `gpu_num`: Index of the GPU to use (default: 0).
-
-`main(multifasta_file, force_cpu=False, gpu_num=0, binding=False)`
-
-Predicts disorder or binding propensities for sequences in a FASTA file.
-
-- `multifasta_file`: Location of (multi) FASTA formatted sequences.
-- `force_cpu`: Force the method to run on CPU only mode (default: False).
-- `gpu_num`: Index of the GPU to use (default: 0).
-- `binding`: Predict binding propensities if True, otherwise predict disorder propensities (default: False).
-
-### Models
-
-`TransformerModel`
-
-Transformer model to estimate positional contact potential from an amino acid sequence.
-
-`BindingTransformerModel`
-
-Transformer model for binding prediction.
-
-`BindingDecoderModel`
-
-Decoder model for binding prediction.
-
-`DecoderModel`
-
-Regression model to estimate disorder propensity from an energy tensor.
+- `sequence` *(str)*: The amino acid sequence.
+- `apply_smoothing` *(bool)*: Applies Savitzky-Golay filtering to the output. (Default: `True`)
 
 ### Helper Functions
 
-`tokenize(sequence, device)`
+#### `multifasta_reader(file_path: str) -> dict`
+Utility function to parse a FASTA file.
+- **Returns:** A dictionary mapping `>header` strings to their corresponding `sequence` strings.
 
-Tokenizes an amino acid sequence.
-
-`predict_disorder(sequence, energy_model, regression_model, device, smoothing=None)`
-
-Predicts disorder propensity from a sequence using a transformer and a regression model.
-
-`calculate_energy(sequence, energy_model, device)`
-
-Calculates residue energy from a sequence using a transformer network.
-
-`predict_binding(sequence, embedding_model, decoder_model, device, smoothing=None, energy_only=False, binding=False)`
-
-Predicts binding propensity from a sequence using a transformer and a decoder model.
-
-`low_memory_predict_disorder(sequence, embedding_model, decoder_model, device, smoothing=None, chunk_len=1000)`
-
-Predicts disorder propensity for long sequences using a low memory approach.
-
-`low_memory_predict_binding(sequence, embedding_model, decoder_model, device, smoothing=None, chunk_len=1000)`
-
-Predicts binding propensity for long sequences using a low memory approach.
-
-`binding_transform(prediction, smoothing=True)`
-
-Transforms binding predictions.
-
-`multifasta_reader(file_handler)`
-
-Reads sequences from a (multi) FASTA file.
-
-`init_models(prediction_type, force_cpu=False, gpu_num=0)`
-
-Initializes networks and device to run on.
-
+---
 
 ## <a name="benchmark">Benchmarks</a>
 
 |     | Type            | Single sequence | Human proteome          |   
 |-----|-------------|-----------------|-------------------------|
 | GPU | 1080 Ti 12G  | 3 sec           | **100 proteins/second** |
-| CPU | Xeon E3-1270 v5 | **1.7 sec**     | 3.5 proteins/second     | 
+| CPU | Xeon E3-1270 v5 | **1.7 sec** | 3.5 proteins/second     | 
 
-
-GPU memory usage:
+**GPU memory usage:**
 
 | VRAM (GB) | Residues |   
 |-----------|----------|
@@ -299,9 +158,13 @@ GPU memory usage:
 | 6         | 8000     | 
 | 12        | 16000    |  
 
+---
+
 ##  <a name="license">License</a>
 
 This project is licensed under the MIT License. See the LICENSE file for details.
+
+---
 
 ## <a name="cite">How to cite</a>
 
@@ -316,11 +179,11 @@ This project is licensed under the MIT License. See the LICENSE file for details
     pages = {W176-W181},
     year = {2024},
     month = {05},
-    abstract = {Intrinsically disordered proteins and protein regions (IDPs/IDRs) carry out important biological functions without relying on a single well-defined conformation. As these proteins are a challenge to study experimentally, computational methods play important roles in their characterization. One of the commonly used tools is the IUPred web server which provides prediction of disordered regions and their binding sites. IUPred is rooted in a simple biophysical model and uses a limited number of parameters largely derived on globular protein structures only. This enabled an incredibly fast and robust prediction method, however, its limitations have also become apparent in light of recent breakthrough methods using deep learning techniques. Here, we present AIUPred, a novel version of IUPred which incorporates deep learning techniques into the energy estimation framework. It achieves improved performance while keeping the robustness of the original method. Based on the evaluation of recent benchmark datasets, AIUPred scored amongst the top three single sequence based methods. With a new web server we offer fast and reliable visual analysis for users as well as options to analyze whole genomes in mere seconds with the downloadable package. AIUPred is available at https://aiupred.elte.hu.},
+    abstract = {Intrinsically disordered proteins and protein regions (IDPs/IDRs) carry out important biological functions without relying on a single well-defined conformation. As these proteins are a challenge to study experimentally, computational methods play important roles in their characterization. One of the commonly used tools is the IUPred web server which provides prediction of disordered regions and their binding sites. IUPred is rooted in a simple biophysical model and uses a limited number of parameters largely derived on globular protein structures only. This enabled an incredibly fast and robust prediction method, however, its limitations have also become apparent in light of recent breakthrough methods using deep learning techniques. Here, we present AIUPred, a novel version of IUPred which incorporates deep learning techniques into the energy estimation framework. It achieves improved performance while keeping the robustness of the original method. Based on the evaluation of recent benchmark datasets, AIUPred scored amongst the top three single sequence based methods. With a new web server we offer fast and reliable visual analysis for users as well as options to analyze whole genomes in mere seconds with the downloadable package. AIUPred is available at [https://aiupred.elte.hu](https://aiupred.elte.hu).},
     issn = {0305-1048},
     doi = {10.1093/nar/gkae385},
-    url = {https://doi.org/10.1093/nar/gkae385},
-    eprint = {https://academic.oup.com/nar/article-pdf/52/W1/W176/58435879/gkae385.pdf},
+    url = {[https://doi.org/10.1093/nar/gkae385](https://doi.org/10.1093/nar/gkae385)},
+    eprint = {[https://academic.oup.com/nar/article-pdf/52/W1/W176/58435879/gkae385.pdf](https://academic.oup.com/nar/article-pdf/52/W1/W176/58435879/gkae385.pdf)},
 }</pre>
 
 ### AIUPred-binding
@@ -334,9 +197,9 @@ pages = {169071},
 year = {2025},
 note = {Computation Resources for Molecular Biology},
 issn = {0022-2836},
-doi = {https://doi.org/10.1016/j.jmb.2025.169071},
-url = {https://www.sciencedirect.com/science/article/pii/S0022283625001378},
+doi = {[https://doi.org/10.1016/j.jmb.2025.169071](https://doi.org/10.1016/j.jmb.2025.169071)},
+url = {[https://www.sciencedirect.com/science/article/pii/S0022283625001378](https://www.sciencedirect.com/science/article/pii/S0022283625001378)},
 author = {Gábor Erdős and Norbert Deutsch and Zsuzsanna Dosztányi},
 keywords = {Protein disorder, Functional disorder, Disorder binding prediction, Functional disorder prediction, Energy embedding},
-abstract = {Intrinsically disordered regions (IDRs) play critical roles in various cellular processes, often mediating interactions through disordered binding regions that transition to ordered states. Experimental characterization of these functional regions is highly challenging, underscoring the need for fast and accurate computational tools. Despite their importance, predicting disordered binding regions remains a significant challenge due to limitations in existing datasets and methodologies. In this study, we introduce AIUPred-binding, a novel prediction tool leveraging a high dimensional mathematical representation of structural energies – we call energy embedding – and pathogenicity scores from AlphaMissense. By employing a transfer learning approach, AIUPred-binding demonstrates improved accuracy in identifying functional sites within IDRs. Our results highlight the tool’s ability to discern subtle features within disordered regions, addressing biases and other challenges associated with manually curated datasets. We present AIUPred-binding integrated into the AIUPred web framework as a versatile and efficient resource for understanding the functional roles of IDRs. AIUPred-binding is freely accessible at https://aiupred.elte.hu.}
+abstract = {Intrinsically disordered regions (IDRs) play critical roles in various cellular processes, often mediating interactions through disordered binding regions that transition to ordered states. Experimental characterization of these functional regions is highly challenging, underscoring the need for fast and accurate computational tools. Despite their importance, predicting disordered binding regions remains a significant challenge due to limitations in existing datasets and methodologies. In this study, we introduce AIUPred-binding, a novel prediction tool leveraging a high dimensional mathematical representation of structural energies – we call energy embedding – and pathogenicity scores from AlphaMissense. By employing a transfer learning approach, AIUPred-binding demonstrates improved accuracy in identifying functional sites within IDRs. Our results highlight the tool’s ability to discern subtle features within disordered regions, addressing biases and other challenges associated with manually curated datasets. We present AIUPred-binding integrated into the AIUPred web framework as a versatile and efficient resource for understanding the functional roles of IDRs. AIUPred-binding is freely accessible at [https://aiupred.elte.hu](https://aiupred.elte.hu).}
 }</pre>
