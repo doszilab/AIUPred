@@ -89,7 +89,7 @@ AIUPred is designed to be highly memory-efficient. By initializing the `AIUPred`
 *Note: AIUPred now **automatically handles memory chunking** for exceptionally long sequences under the hood. You no longer need to call separate "low memory" functions!*
 
 ```python
-from aiupred import AIUPred, multifasta_reader
+from aiupred import AIUPred
 
 # 1. Initialize the predictor (Models are loaded into memory here)
 predictor = AIUPred()
