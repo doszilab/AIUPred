@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aiupred"
+version = "0.1.0"
+description = "A deep learning library for predicting protein disorder and binding propensities based on statistical potential energies"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "torch>=2.0.0",
+    "numpy>=1.21.0",
+    "scipy>=1.7.0"
+]
+
+# Tell setuptools where to find your code
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["aiupred", "aiupred.*"]
+
+# CRITICAL: Tell setuptools to include your weight files and text files!
+[tool.setuptools.package-data]
+"aiupred" = ["data/*.pt", "data/binding_transform"]
