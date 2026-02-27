@@ -1,6 +1,5 @@
 import os
 from aiupred import AIUPred, multifasta_reader
-import matplotlib.pyplot as plt
 
 def main():
     print("Initializing AIUPredictor...")
@@ -26,13 +25,10 @@ def main():
     print("Predicting disorder for P53...")
     disorder_propensities = predictor.predict_disorder(sequence)
     print(f"Disorder propensities (first 5 AA): {disorder_propensities[:5]}")
-    plt.plot(disorder_propensities)
-    plt.show()
 
     print("Predicting binding for P53...")
     binding_propensities = predictor.predict_binding(sequence)
     print(f"Binding propensities (first 5 AA):  {binding_propensities[:5]}")
-
 
     # ==========================================
     # Example 2: Multi-FASTA Batch Processing
