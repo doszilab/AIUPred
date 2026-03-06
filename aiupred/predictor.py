@@ -130,3 +130,47 @@ class AIUPred:
             prediction = smoothing(prediction)
             
         return prediction
+
+    @torch.no_grad()
+    def _forward_embedding(self, sequence: str, center_only: bool) -> np.ndarray:
+        """Extracts embeddings. Returns (L, 32) if center_only, else (L, 101, 32)."""
+        _tokens = self._tokenize(sequence)
+        _padded_token = pad(_tokens, (WINDOW // 2, WINDOW // 2), 'constant', 0)
+        _unfolded_tokens = _padded_token.unfold(0, WINDOW + 1, 1)
+        
+        # Generates the full (L, 101, 32) tensor
+        _token_embedding = self.embedding_model(_unfolded_tokens, embed_only=True)
+        
+        if center_only:
+            # Slice out the center residue's 32-dim vector
+            center_idx = WINDOW // 2
+            return _token_embedding[:, center_idx, :].cpu().numpy()
+        else:
+            # Return the full context window for each position
+            return _token_embedding.cpu().numpy()
+
+    def get_embedding(self, sequence: str, center_only: bool = True, chunk_len: int = 1000) -> np.ndarray:
+        """
+        Extracts sequence embeddings. 
+        If center_only=True, returns shape (L, 32).
+        If center_only=False, returns shape (L, 101, 32).
+        """
+        overlap = 100
+        
+        if len(sequence) <= chunk_len:
+            return self._forward_embedding(sequence, center_only)
+            
+        # Low-memory chunking logic
+        overlapping_embeddings = []
+        for chunk_start in range(0, len(sequence), chunk_len - overlap):
+            chunk_seq = sequence[chunk_start:chunk_start + chunk_len]
+            overlapping_embeddings.append(self._forward_embedding(chunk_seq, center_only))
+            
+        # Concatenate along the sequence length dimension (axis=0)
+        # This works perfectly for both 2D and 3D arrays!
+        embedding = np.concatenate(
+            (overlapping_embeddings[0], *[x[overlap:] for x in overlapping_embeddings[1:]]), 
+            axis=0
+        )
+        
+        return embedding
