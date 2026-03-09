@@ -24,13 +24,13 @@ AIUPred requires Python 3.8+ and relies on modern scientific computing libraries
 Because AIUPred is a standard Python package, you can install it directly from GitHub using `pip`:
 
 ```bash
-pip install git+[https://github.com/doszilab/AIUPred.git](https://github.com/doszilab/AIUPred.git)
+pip install git+https://github.com/doszilab/AIUPred.git@refactor/oop-library
 ```
 
 Alternatively, you can clone the repository and install it locally:
 
 ```bash
-git clone [https://github.com/doszilab/AIUPred.git](https://github.com/doszilab/AIUPred.git)
+git clone https://github.com/doszilab/AIUPred.git@refactor/oop-library
 cd AIUPred
 pip install .
 ```
