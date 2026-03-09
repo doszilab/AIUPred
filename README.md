@@ -54,15 +54,15 @@ aiupred -i test.fasta -o results.tsv -b
 ### Expected Output
 ```text
 # Position	Residue	Disorder	Binding
-#sp|P04637|P53_HUMAN Cellular tumor antigen p53 OS=Homo sapiens OX=9606 GN=TP53 PE=1 SV=4
-1	M	0.8014	0.8669
-2	E	0.8527	0.6927
-3	E	0.8157	0.5133
-4	P	0.8313	0.3790
-5	Q	0.7959	0.3011
-6	S	0.7855	0.2671
-7	D	0.8402	0.2229
-8	P	0.8788	0.2326
+#>sp|P04637|P53_HUMAN Cellular tumor antigen p53 OS=Homo sapiens OX=9606 GN=TP53 PE=1 SV=4
+1	M	0.9752	0.8669
+2	E	0.9761	0.6927
+3	E	0.9769	0.5133
+4	P	0.9758	0.3790
+5	Q	0.9729	0.3011
+6	S	0.9720	0.2671
+7	D	0.9701	0.2229
+8	P	0.9666	0.2326
 ...
 ```
 
