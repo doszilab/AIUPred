@@ -6,7 +6,7 @@
 
 Intrinsically disordered proteins (IDPs) have no single well-defined tertiary structure under native conditions. AIUPred is a tool that allows to identify disordered protein regions and their binding sites, created by Zsuzsanna Dosztányi and Gábor Erdős. 
 
-AIUPred provides both a **standalone command-line interface (CLI)** and an **importable Python library** for seamless integration into bioinformatics pipelines.
+AIUPred provides both a **standalone command-line interface (CLI)** and an **importable Python library** for seamless integration into bioinformatics pipelines. The library can also be used as a **feature extractor** to generate high-quality structural embeddings for downstream machine learning tasks.
 
 AIUPred is also available as a web server: [https://aiupred.elte.hu/](https://aiupred.elte.hu/)
 
@@ -24,13 +24,13 @@ AIUPred requires Python 3.8+ and relies on modern scientific computing libraries
 Because AIUPred is a standard Python package, you can install it directly from GitHub using `pip`:
 
 ```bash
-pip install git+https://github.com/doszilab/AIUPred.git
+pip install git+[https://github.com/doszilab/AIUPred.git](https://github.com/doszilab/AIUPred.git)
 ```
 
 Alternatively, you can clone the repository and install it locally:
 
 ```bash
-git clone https://github.com/doszilab/AIUPred.git
+git clone [https://github.com/doszilab/AIUPred.git](https://github.com/doszilab/AIUPred.git)
 cd AIUPred
 pip install .
 ```
@@ -89,7 +89,7 @@ AIUPred is designed to be highly memory-efficient. By initializing the `AIUPred`
 *Note: AIUPred now **automatically handles memory chunking** for exceptionally long sequences under the hood. You no longer need to call separate "low memory" functions!*
 
 ```python
-from aiupred import AIUPred
+from aiupred import AIUPred, multifasta_reader
 
 # 1. Initialize the predictor (Models are loaded into memory here)
 predictor = AIUPred()
@@ -101,6 +101,13 @@ disorder_propensities = predictor.predict_disorder(sequence)
 
 # 3. Predict Binding
 binding_propensities = predictor.predict_binding(sequence)
+
+# 4. Extract Feature Embeddings
+# Returns a 2D numpy array of shape (L, 32)
+features_2d = predictor.get_embedding(sequence, center_only=True)
+
+# Returns a 3D numpy array of shape (L, 101, 32) containing the full context windows
+features_3d = predictor.get_embedding(sequence, center_only=False)
 ```
 
 ### Processing a Multi-FASTA File
@@ -134,6 +141,12 @@ Predicts disorder propensities for a given amino acid sequence.
 Predicts binding propensities for a given amino acid sequence.
 - `sequence` *(str)*: The amino acid sequence.
 - `apply_smoothing` *(bool)*: Applies Savitzky-Golay filtering to the output. (Default: `True`)
+
+#### `get_embedding(sequence: str, center_only: bool = True, chunk_len: int = 1000) -> numpy.ndarray`
+Extracts high-dimensional feature embeddings from the sequence.
+- `sequence` *(str)*: The amino acid sequence.
+- `center_only` *(bool)*: If `True`, returns the center residue's 32-dimensional embedding with shape `(L, 32)`. If `False`, returns the full sliding window context with shape `(L, 101, 32)`. (Default: `True`)
+- `chunk_len` *(int)*: Sequence chunk length to prevent out-of-memory errors on large proteins. (Default: `1000`)
 
 ### Helper Functions
 
@@ -179,11 +192,11 @@ This project is licensed under the MIT License. See the LICENSE file for details
     pages = {W176-W181},
     year = {2024},
     month = {05},
-    abstract = {Intrinsically disordered proteins and protein regions (IDPs/IDRs) carry out important biological functions without relying on a single well-defined conformation. As these proteins are a challenge to study experimentally, computational methods play important roles in their characterization. One of the commonly used tools is the IUPred web server which provides prediction of disordered regions and their binding sites. IUPred is rooted in a simple biophysical model and uses a limited number of parameters largely derived on globular protein structures only. This enabled an incredibly fast and robust prediction method, however, its limitations have also become apparent in light of recent breakthrough methods using deep learning techniques. Here, we present AIUPred, a novel version of IUPred which incorporates deep learning techniques into the energy estimation framework. It achieves improved performance while keeping the robustness of the original method. Based on the evaluation of recent benchmark datasets, AIUPred scored amongst the top three single sequence based methods. With a new web server we offer fast and reliable visual analysis for users as well as options to analyze whole genomes in mere seconds with the downloadable package. AIUPred is available at [https://aiupred.elte.hu](https://aiupred.elte.hu).},
+    abstract = {Intrinsically disordered proteins and protein regions (IDPs/IDRs) carry out important biological functions without relying on a single well-defined conformation. As these proteins are a challenge to study experimentally, computational methods play important roles in their characterization. One of the commonly used tools is the IUPred web server which provides prediction of disordered regions and their binding sites. IUPred is rooted in a simple biophysical model and uses a limited number of parameters largely derived on globular protein structures only. This enabled an incredibly fast and robust prediction method, however, its limitations have also become apparent in light of recent breakthrough methods using deep learning techniques. Here, we present AIUPred, a novel version of IUPred which incorporates deep learning techniques into the energy estimation framework. It achieves improved performance while keeping the robustness of the original method. Based on the evaluation of recent benchmark datasets, AIUPred scored amongst the top three single sequence based methods. With a new web server we offer fast and reliable visual analysis for users as well as options to analyze whole genomes in mere seconds with the downloadable package. AIUPred is available at https://aiupred.elte.hu.},
     issn = {0305-1048},
     doi = {10.1093/nar/gkae385},
-    url = {[https://doi.org/10.1093/nar/gkae385](https://doi.org/10.1093/nar/gkae385)},
-    eprint = {[https://academic.oup.com/nar/article-pdf/52/W1/W176/58435879/gkae385.pdf](https://academic.oup.com/nar/article-pdf/52/W1/W176/58435879/gkae385.pdf)},
+    url = {https://doi.org/10.1093/nar/gkae385},
+    eprint = {https://academic.oup.com/nar/article-pdf/52/W1/W176/58435879/gkae385.pdf},
 }</pre>
 
 ### AIUPred-binding
@@ -197,9 +210,9 @@ pages = {169071},
 year = {2025},
 note = {Computation Resources for Molecular Biology},
 issn = {0022-2836},
-doi = {[https://doi.org/10.1016/j.jmb.2025.169071](https://doi.org/10.1016/j.jmb.2025.169071)},
-url = {[https://www.sciencedirect.com/science/article/pii/S0022283625001378](https://www.sciencedirect.com/science/article/pii/S0022283625001378)},
+doi = {https://doi.org/10.1016/j.jmb.2025.169071},
+url = {https://www.sciencedirect.com/science/article/pii/S0022283625001378},
 author = {Gábor Erdős and Norbert Deutsch and Zsuzsanna Dosztányi},
 keywords = {Protein disorder, Functional disorder, Disorder binding prediction, Functional disorder prediction, Energy embedding},
-abstract = {Intrinsically disordered regions (IDRs) play critical roles in various cellular processes, often mediating interactions through disordered binding regions that transition to ordered states. Experimental characterization of these functional regions is highly challenging, underscoring the need for fast and accurate computational tools. Despite their importance, predicting disordered binding regions remains a significant challenge due to limitations in existing datasets and methodologies. In this study, we introduce AIUPred-binding, a novel prediction tool leveraging a high dimensional mathematical representation of structural energies – we call energy embedding – and pathogenicity scores from AlphaMissense. By employing a transfer learning approach, AIUPred-binding demonstrates improved accuracy in identifying functional sites within IDRs. Our results highlight the tool’s ability to discern subtle features within disordered regions, addressing biases and other challenges associated with manually curated datasets. We present AIUPred-binding integrated into the AIUPred web framework as a versatile and efficient resource for understanding the functional roles of IDRs. AIUPred-binding is freely accessible at [https://aiupred.elte.hu](https://aiupred.elte.hu).}
+abstract = {Intrinsically disordered regions (IDRs) play critical roles in various cellular processes, often mediating interactions through disordered binding regions that transition to ordered states. Experimental characterization of these functional regions is highly challenging, underscoring the need for fast and accurate computational tools. Despite their importance, predicting disordered binding regions remains a significant challenge due to limitations in existing datasets and methodologies. In this study, we introduce AIUPred-binding, a novel prediction tool leveraging a high dimensional mathematical representation of structural energies – we call energy embedding – and pathogenicity scores from AlphaMissense. By employing a transfer learning approach, AIUPred-binding demonstrates improved accuracy in identifying functional sites within IDRs. Our results highlight the tool’s ability to discern subtle features within disordered regions, addressing biases and other challenges associated with manually curated datasets. We present AIUPred-binding integrated into the AIUPred web framework as a versatile and efficient resource for understanding the functional roles of IDRs. AIUPred-binding is freely accessible at https://aiupred.elte.hu.}
 }</pre>
