@@ -4,7 +4,7 @@
 
 ## <a name="about">About</a>
 
-Intrinsically disordered proteins (IDPs) have no single well-defined tertiary structure under native conditions. AIUPred is a tool that allows to identify disordered protein regions and their binding sites, created by Zsuzsanna Dosztányi and Gábor Erdős. 
+Intrinsically disordered proteins (IDPs) have no single well-defined tertiary structure under native conditions. AIUPred is a tool that allows to identify disordered protein regions, their binding sites, and flexible linkers, created by Zsuzsanna Dosztányi and Gábor Erdős. 
 
 AIUPred provides both a **standalone command-line interface (CLI)** and an **importable Python library** for seamless integration into bioinformatics pipelines. The library can also be used as a **feature extractor** to generate high-quality structural embeddings for downstream machine learning tasks.
 
@@ -24,13 +24,13 @@ AIUPred requires Python 3.8+ and relies on modern scientific computing libraries
 Because AIUPred is a standard Python package, you can install it directly from GitHub using `pip`:
 
 ```bash
-pip install git+https://github.com/doszilab/AIUPred.git@refactor/oop-library
+pip install git+[https://github.com/doszilab/AIUPred.git](https://github.com/doszilab/AIUPred.git)
 ```
 
 Alternatively, you can clone the repository and install it locally:
 
 ```bash
-git clone https://github.com/doszilab/AIUPred.git@refactor/oop-library
+git clone [https://github.com/doszilab/AIUPred.git](https://github.com/doszilab/AIUPred.git)
 cd AIUPred
 pip install .
 ```
@@ -46,23 +46,23 @@ To carry out a standard disorder analysis on a FASTA file:
 aiupred -i test.fasta
 ```
 
-To predict **both disorder and binding** (`-b`), and save the results to a file (`-o`):
+To predict **disorder, binding, and flexible linkers** (`-b` and `-l`), and save the results to a file (`-o`):
 ```bash
-aiupred -i test.fasta -o results.tsv -b
+aiupred -i test.fasta -o results.tsv -b -l
 ```
 
 ### Expected Output
 ```text
-# Position	Residue	Disorder	Binding
-#>sp|P04637|P53_HUMAN Cellular tumor antigen p53 OS=Homo sapiens OX=9606 GN=TP53 PE=1 SV=4
-1	M	0.9752	0.8669
-2	E	0.9761	0.6927
-3	E	0.9769	0.5133
-4	P	0.9758	0.3790
-5	Q	0.9729	0.3011
-6	S	0.9720	0.2671
-7	D	0.9701	0.2229
-8	P	0.9666	0.2326
+# Position	Residue	Disorder	Binding	Linker
+#sp|P04637|P53_HUMAN Cellular tumor antigen p53 OS=Homo sapiens OX=9606 GN=TP53 PE=1 SV=4
+1	M	0.8014	0.8669	0.1504
+2	E	0.8527	0.6927	0.3168
+3	E	0.8157	0.5133	0.4851
+4	P	0.8313	0.3790	0.6128
+5	Q	0.7959	0.3011	0.6729
+6	S	0.7855	0.2671	0.7027
+7	D	0.8402	0.2229	0.7547
+8	P	0.8788	0.2326	0.7533
 ...
 ```
 
@@ -76,6 +76,7 @@ options:
                         Output file
   -v, --verbose         Increase output verbosity
   -b, --binding         Predict binding using AIUPred-binding
+  -l, --linker          Predict flexible linkers
   -g GPU, --gpu GPU     Index of GPU to use, default=0
   --force-cpu           Force the network to only utilize the CPU. Calculation will be very slow.
 ```
@@ -102,7 +103,15 @@ disorder_propensities = predictor.predict_disorder(sequence)
 # 3. Predict Binding
 binding_propensities = predictor.predict_binding(sequence)
 
-# 4. Extract Feature Embeddings
+# 4. Predict Flexible Linkers
+# Tip: Passing the pre-calculated arrays skips redundant neural network inference!
+linker_propensities = predictor.predict_linker(
+    sequence, 
+    disorder_pred=disorder_propensities, 
+    binding_pred=binding_propensities
+)
+
+# 5. Extract Feature Embeddings
 # Returns a 2D numpy array of shape (L, 32)
 features_2d = predictor.get_embedding(sequence, center_only=True)
 
@@ -121,6 +130,7 @@ for header, seq in sequences.items():
     print(f"Processing {header}...")
     disorder = predictor.predict_disorder(seq)
     binding = predictor.predict_binding(seq)
+    linker = predictor.predict_linker(seq, disorder_pred=disorder, binding_pred=binding)
 ```
 
 ---
@@ -141,6 +151,13 @@ Predicts disorder propensities for a given amino acid sequence.
 Predicts binding propensities for a given amino acid sequence.
 - `sequence` *(str)*: The amino acid sequence.
 - `apply_smoothing` *(bool)*: Applies Savitzky-Golay filtering to the output. (Default: `True`)
+
+#### `predict_linker(sequence: str, apply_smoothing: bool = True, disorder_pred: Optional[numpy.ndarray] = None, binding_pred: Optional[numpy.ndarray] = None) -> numpy.ndarray`
+Predicts flexible linker propensities by mathematically combining disorder and binding scores.
+- `sequence` *(str)*: The amino acid sequence.
+- `apply_smoothing` *(bool)*: Applies Savitzky-Golay filtering. (Default: `True`)
+- `disorder_pred` *(Optional[numpy.ndarray])*: Pre-calculated disorder array to save computation time.
+- `binding_pred` *(Optional[numpy.ndarray])*: Pre-calculated binding array to save computation time.
 
 #### `get_embedding(sequence: str, center_only: bool = True, chunk_len: int = 1000) -> numpy.ndarray`
 Extracts high-dimensional feature embeddings from the sequence.
