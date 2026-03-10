@@ -90,6 +90,24 @@ class AIUPred:
         # 2. Apply the dictionary transform and smoothing
         return self._apply_binding_transform(raw_pred, apply_smoothing)
 
+    def predict_linker(self, sequence: str, apply_smoothing: bool = True, disorder_pred: np.ndarray = None, binding_pred: np.ndarray = None) -> np.ndarray:
+        """
+        Predicts flexible linker propensities by combining disorder and binding scores.
+        You can pass pre-calculated disorder/binding arrays to save computation time.
+        """
+        # Calculate disorder if not provided
+        if disorder_pred is None:
+            disorder_pred = self.predict_disorder(sequence, apply_smoothing)
+            
+        # Calculate binding if not provided
+        if binding_pred is None:
+            binding_pred = self.predict_binding(sequence, apply_smoothing)
+            
+        # Apply the linker equation
+        linker_pred = (disorder_pred ** 0.215) * ((1.0 - binding_pred) ** 0.967)
+        
+        return linker_pred
+
     def _tokenize(self, sequence: str) -> torch.Tensor:
         # Replaces your standalone tokenize function
         return torch.tensor([AA_CODE.index(aa) if aa in AA_CODE else 20 for aa in sequence], device=self.device)

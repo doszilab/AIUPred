@@ -21,6 +21,9 @@ def main():
     parser.add_argument("-b", "--binding",
                         help="Predict binding using AIUPred-binding",
                         action="store_true")
+    parser.add_argument("-l", "--linker",
+                        help="Predict flexible linkers",
+                        action="store_true")
     parser.add_argument("-g", "--gpu",
                         help="Index of GPU to use, default=0",
                         type=int, default=0)
@@ -69,7 +72,10 @@ def main():
     header_line = "# Position\tResidue\tDisorder"
     if args.binding:
         header_line += "\tBinding"
-    
+
+    if args.linker:
+        header_line += "\tLinker"   
+
     if args.output_file:
         output_lines.append(header_line)
 
@@ -87,12 +93,23 @@ def main():
         if args.binding:
             binding_preds = predictor.predict_binding(sequence)
 
+        # Calculate linker (Passes the pre-calculated arrays to save huge amounts of time!)
+        linker_preds = None
+        if args.linker:
+            linker_preds = predictor.predict_linker(
+                sequence, 
+                disorder_pred=disorder_preds, 
+                binding_pred=binding_preds
+            )
+
         output_lines.append(f'#{ident}')
         
         for pos, res in enumerate(sequence):
             line = f'{pos+1}\t{res}\t{disorder_preds[pos]:.4f}'
             if args.binding:
                 line += f'\t{binding_preds[pos]:.4f}'
+            if args.linker:
+                line += f'\t{linker_preds[pos]:.4f}'
             output_lines.append(line)
             
         output_lines.append('') # Add a blank line between sequences
