@@ -74,9 +74,9 @@ class AIUPred:
         pred[pred > 1] = 1.0  # Cap the maximum value at 1.0
         return pred
 
-    def predict_disorder(self, sequence: str, smoothing=None) -> np.ndarray:
+    def predict_disorder(self, sequence: str) -> np.ndarray:
         # 1. Get the raw neural network output
-        raw_pred = self._run_inference(sequence, self.disorder_decoder, smoothing)
+        raw_pred = self._run_inference(sequence, self.disorder_decoder)
         
         # 2. Apply the logistic calibration
         calibrated_pred = self._apply_disorder_cutoff(raw_pred)
@@ -97,7 +97,7 @@ class AIUPred:
         """
         # Calculate disorder if not provided
         if disorder_pred is None:
-            disorder_pred = self.predict_disorder(sequence, apply_smoothing)
+            disorder_pred = self.predict_disorder(sequence)
             
         # Calculate binding if not provided
         if binding_pred is None:
