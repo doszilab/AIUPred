@@ -95,6 +95,8 @@ class AIUPred:
         Predicts flexible linker propensities by combining disorder and binding scores.
         You can pass pre-calculated disorder/binding arrays to save computation time.
         """
+        threshold = 0.5
+        penalty_factor = 0.1
         # Calculate disorder if not provided
         if disorder_pred is None:
             disorder_pred = self.predict_disorder(sequence)
@@ -106,7 +108,29 @@ class AIUPred:
         # Apply the linker equation
         linker_pred = (disorder_pred ** 0.215) * ((1.0 - binding_pred) ** 0.967)
         
-        return linker_pred
+        linker_score = linker_pred * disorder_pred
+        
+        seq_len = len(disorder_pred)
+        
+        # 1. Find the end of the N-terminal disordered tail
+        n_idx = 0
+        while n_idx < seq_len and disorder_pred[n_idx] >= threshold:
+            n_idx += 1
+            
+        # 2. Find the start of the C-terminal disordered tail
+        c_idx = seq_len - 1
+        while c_idx >= 0 and disorder_pred[c_idx] >= threshold:
+            c_idx -= 1
+            
+        # 3. Apply the penalty to the identified terminal regions
+        # Only apply if the protein isn't 100% disordered (handled by the c_idx >= n_idx check)
+        if n_idx > 0:
+            linker_score[:n_idx] *= penalty_factor
+            
+        if c_idx < seq_len - 1 and c_idx >= n_idx:
+            linker_score[c_idx + 1:] *= penalty_factor
+            
+        return linker_score
 
     def _tokenize(self, sequence: str) -> torch.Tensor:
         # Replaces your standalone tokenize function
