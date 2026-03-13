@@ -108,8 +108,6 @@ class AIUPred:
         # Apply the linker equation
         linker_pred = (disorder_pred ** 0.215) * ((1.0 - binding_pred) ** 0.967)
         
-        linker_score = linker_pred * disorder_pred
-        
         seq_len = len(disorder_pred)
         
         # 1. Find the end of the N-terminal disordered tail
