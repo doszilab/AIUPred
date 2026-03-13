@@ -106,7 +106,7 @@ class AIUPred:
             binding_pred = self.predict_binding(sequence, apply_smoothing)
             
         # Apply the linker equation
-        linker_pred = (disorder_pred ** 0.215) * ((1.0 - binding_pred) ** 0.967)
+        linker_score = (disorder_pred ** 0.215) * ((1.0 - binding_pred) ** 0.967)
         
         seq_len = len(disorder_pred)
         
