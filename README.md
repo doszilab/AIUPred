@@ -8,10 +8,12 @@ This latest version has also been independently evaluated in the Critical Assess
 
 ### CAID3 Results
 
-- Disorder NOX: AUC 0.825, max F1 0.633
-- Disorder PDB: AUC 0.925, max F1 0.814
-- Binding: AUC 0.764, max F1 0.338
-- Binding IDR: AUC 0.590, max F1 0.557
+| Category      | AUC   | Max F1 |
+|---------------|-------|--------|
+| Disorder NOX  | 0.825 | 0.633  |
+| Disorder PDB  | 0.925 | 0.814  |
+| Binding       | 0.764 | 0.338  |
+| Binding IDR   | 0.590 | 0.557  |
 
 ## <a name="about">About</a>
 
