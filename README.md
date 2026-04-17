@@ -4,6 +4,7 @@
 
 ## What's New in AIUPred v3
 
+Novel integrated energy embedding framework for the different flavours of disorder. Redesigned OOP based framework for easier use and implementation.
 This latest version has also been independently evaluated in the Critical Assessment of protein Intrinsic Disorder (CAID) blind benchmark, where it achieved top-tier performance across evaluated categories.
 
 ### CAID3 Results
