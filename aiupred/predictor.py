@@ -91,7 +91,7 @@ class AIUPred:
     @staticmethod
     def get_redox_regions(redox_plus_values: np.ndarray, redox_minus_values: np.ndarray) -> dict:
         """
-        Calculate redox-sensitive region boundaries using the native (plus) and C->S (minus) profiles.
+        Calculate redox-sensitive region boundaries using the C->S mutant (plus) and native (minus) profiles.
 
         Returns a dictionary mapping region_start -> region_end (0-based, inclusive).
         """
@@ -139,14 +139,14 @@ class AIUPred:
 
     def predict_redox_profiles(self, sequence: str) -> tuple:
         """
-        Predict native (plus) and C->S mutant (minus) disorder profiles.
+        Predict C->S mutant (plus) and native (minus) disorder profiles.
 
         Returns:
             tuple[np.ndarray, np.ndarray]: (redox_plus_disorder, redox_minus_disorder)
         """
-        redox_plus_disorder = self.predict_disorder(sequence)
         c_to_s_sequence = self.mutate_c_to_s(sequence)
-        redox_minus_disorder = self.predict_disorder(c_to_s_sequence)
+        redox_plus_disorder = self.predict_disorder(c_to_s_sequence)
+        redox_minus_disorder = self.predict_disorder(sequence)
         return redox_plus_disorder, redox_minus_disorder
 
     def predict_redox_region_binary(self, sequence: str, redox_plus_disorder: np.ndarray = None, redox_minus_disorder: np.ndarray = None) -> np.ndarray:

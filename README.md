@@ -51,7 +51,7 @@ To predict **disorder, binding, and flexible linkers** (`-b` and `-l`), and save
 aiupred -i test.fasta -o results.tsv -b -l
 ```
 
-To predict **redox-sensitive disorder** using original and C->S mutant profiles:
+To predict **redox-sensitive disorder** using C->S mutant and original profiles:
 ```bash
 aiupred -i test.fasta -r
 ```
@@ -117,7 +117,7 @@ linker_propensities = predictor.predict_linker(
     binding_pred=binding_propensities
 )
 
-# 5. Predict Redox-Sensitive Disorder (original vs C->S mutant)
+# 5. Predict Redox-Sensitive Disorder (C->S mutant vs original)
 redox_plus_disorder, redox_minus_disorder = predictor.predict_redox_profiles(sequence)
 redox_regions_binary = predictor.predict_redox_region_binary(
     sequence,
@@ -174,25 +174,25 @@ Predicts flexible linker propensities by mathematically combining disorder and b
 - `binding_pred` *(Optional[numpy.ndarray])*: Pre-calculated binding array to save computation time.
 
 #### `mutate_c_to_s(sequence: str) -> str`
-Returns the C->S mutated sequence used for redox-minus calculations.
+Returns the C->S mutated sequence used for redox-plus calculations.
 - `sequence` *(str)*: The amino acid sequence.
 
 #### `get_redox_regions(redox_plus_values: numpy.ndarray, redox_minus_values: numpy.ndarray) -> dict`
-Detects redox-sensitive region boundaries using differences between original and C->S mutant disorder profiles.
-- `redox_plus_values` *(numpy.ndarray)*: Original sequence disorder propensities.
-- `redox_minus_values` *(numpy.ndarray)*: C->S mutant disorder propensities.
+Detects redox-sensitive region boundaries using differences between C->S mutant and original disorder profiles.
+- `redox_plus_values` *(numpy.ndarray)*: C->S mutant disorder propensities.
+- `redox_minus_values` *(numpy.ndarray)*: Original sequence disorder propensities.
 - **Returns:** A dictionary of `{region_start: region_end}` boundaries (0-based, inclusive).
 
 #### `predict_redox_profiles(sequence: str) -> tuple[numpy.ndarray, numpy.ndarray]`
 Predicts redox plus/minus disorder profiles.
 - `sequence` *(str)*: The amino acid sequence.
-- **Returns:** `(redox_plus_disorder, redox_minus_disorder)` where plus is original and minus is C->S mutant.
+- **Returns:** `(redox_plus_disorder, redox_minus_disorder)` where plus is C->S mutant and minus is original.
 
 #### `predict_redox_region_binary(sequence: str, redox_plus_disorder: Optional[numpy.ndarray] = None, redox_minus_disorder: Optional[numpy.ndarray] = None) -> numpy.ndarray`
 Predicts a binary redox region annotation per residue (`1` in region, else `0`).
 - `sequence` *(str)*: The amino acid sequence.
-- `redox_plus_disorder` *(Optional[numpy.ndarray])*: Optional pre-calculated original disorder profile.
-- `redox_minus_disorder` *(Optional[numpy.ndarray])*: Optional pre-calculated C->S mutant disorder profile.
+- `redox_plus_disorder` *(Optional[numpy.ndarray])*: Optional pre-calculated C->S mutant disorder profile.
+- `redox_minus_disorder` *(Optional[numpy.ndarray])*: Optional pre-calculated original disorder profile.
 
 #### `get_embedding(sequence: str, center_only: bool = True, chunk_len: int = 1000) -> numpy.ndarray`
 Extracts high-dimensional feature embeddings from the sequence.
