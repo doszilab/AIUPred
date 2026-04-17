@@ -24,6 +24,9 @@ def main():
     parser.add_argument("-l", "--linker",
                         help="Predict flexible linkers",
                         action="store_true")
+    parser.add_argument("-r", "--redox",
+                        help="Predict redox-sensitive disorder profiles and binary regions",
+                        action="store_true")
     parser.add_argument("-g", "--gpu",
                         help="Index of GPU to use, default=0",
                         type=int, default=0)
@@ -69,12 +72,16 @@ def main():
 
     # 3. Setup output formatting
     output_lines = []
-    header_line = "# Position\tResidue\tDisorder"
+    if args.redox:
+        header_line = "# Position\tResidue\tRedoxPlusDisorder\tRedoxMinusDisorder\tRegion"
+    else:
+        header_line = "# Position\tResidue\tDisorder"
+
     if args.binding:
         header_line += "\tBinding"
 
     if args.linker:
-        header_line += "\tLinker"   
+        header_line += "\tLinker"
 
     if args.output_file:
         output_lines.append(header_line)
@@ -87,7 +94,20 @@ def main():
         # Clean sequence (remove newlines if any snuck in)
         sequence = "".join(sequence.split())
         
-        disorder_preds = predictor.predict_disorder(sequence)
+        disorder_preds = None
+        redox_plus_preds = None
+        redox_minus_preds = None
+        redox_region_binary = None
+        if args.redox:
+            redox_plus_preds, redox_minus_preds = predictor.predict_redox_profiles(sequence)
+            disorder_preds = redox_plus_preds
+            redox_region_binary = predictor.predict_redox_region_binary(
+                sequence,
+                redox_plus_disorder=redox_plus_preds,
+                redox_minus_disorder=redox_minus_preds
+            )
+        else:
+            disorder_preds = predictor.predict_disorder(sequence)
         
         binding_preds = None
         if args.binding:
@@ -105,7 +125,13 @@ def main():
         output_lines.append(f'#{ident}')
         
         for pos, res in enumerate(sequence):
-            line = f'{pos+1}\t{res}\t{disorder_preds[pos]:.4f}'
+            if args.redox:
+                line = (
+                    f'{pos+1}\t{res}\t{redox_plus_preds[pos]:.4f}\t'
+                    f'{redox_minus_preds[pos]:.4f}\t{int(redox_region_binary[pos])}'
+                )
+            else:
+                line = f'{pos+1}\t{res}\t{disorder_preds[pos]:.4f}'
             if args.binding:
                 line += f'\t{binding_preds[pos]:.4f}'
             if args.linker:

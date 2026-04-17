@@ -83,6 +83,85 @@ class AIUPred:
         
         return calibrated_pred
 
+    @staticmethod
+    def mutate_c_to_s(sequence: str) -> str:
+        """Return a sequence where every cysteine is mutated to serine."""
+        return sequence.replace('C', 'S').replace('c', 's')
+
+    @staticmethod
+    def get_redox_regions(redox_plus_values: np.ndarray, redox_minus_values: np.ndarray) -> dict:
+        """
+        Calculate redox-sensitive region boundaries using the native (plus) and C->S (minus) profiles.
+
+        Returns a dictionary mapping region_start -> region_end (0-based, inclusive).
+        """
+        patch_loc = {}
+        trigger = False
+        opening_pos = []
+        start, end = 0, 0
+        counter = 0
+
+        # Calculate possible opening positions.
+        for idx, redox_plus_val in enumerate(redox_plus_values):
+            if redox_plus_val > 0.5 > redox_minus_values[idx] and redox_plus_val - redox_minus_values[idx] > 0.3:
+                opening_pos.append(idx)
+
+        # Filter out where not enough possible position is found.
+        # Enlarge region where enough position is found.
+        for idx, redox_plus_val in enumerate(redox_plus_values):
+            if redox_plus_val - redox_minus_values[idx] > 0.15 and redox_plus_val >= 0.35:
+                if not trigger:
+                    start = idx
+                    trigger = True
+                if idx in opening_pos:
+                    counter += 1
+                end = idx
+            else:
+                trigger = False
+                if end - start > 14 and counter > 2:
+                    patch_loc[start] = end
+                counter = 0
+
+        if end - start > 14 and counter > 2:
+            patch_loc[start] = end
+
+        # Combine close regions.
+        deletable = []
+        for region_start, region_end in patch_loc.items():
+            for region_start2, region_end2 in patch_loc.items():
+                if region_start != region_start2 and region_start2 - region_end < 10 and region_start2 > region_start:
+                    patch_loc[region_start] = region_end2
+                    deletable.append(region_start2)
+        for region_start in deletable:
+            del patch_loc[region_start]
+
+        return patch_loc
+
+    def predict_redox_profiles(self, sequence: str) -> tuple:
+        """
+        Predict native (plus) and C->S mutant (minus) disorder profiles.
+
+        Returns:
+            tuple[np.ndarray, np.ndarray]: (redox_plus_disorder, redox_minus_disorder)
+        """
+        redox_plus_disorder = self.predict_disorder(sequence)
+        c_to_s_sequence = self.mutate_c_to_s(sequence)
+        redox_minus_disorder = self.predict_disorder(c_to_s_sequence)
+        return redox_plus_disorder, redox_minus_disorder
+
+    def predict_redox_region_binary(self, sequence: str, redox_plus_disorder: np.ndarray = None, redox_minus_disorder: np.ndarray = None) -> np.ndarray:
+        """
+        Predict binary (0/1) redox-sensitive regions for each residue position.
+        """
+        if redox_plus_disorder is None or redox_minus_disorder is None:
+            redox_plus_disorder, redox_minus_disorder = self.predict_redox_profiles(sequence)
+
+        region_bounds = self.get_redox_regions(redox_plus_disorder, redox_minus_disorder)
+        region_binary = np.zeros(len(sequence), dtype=int)
+        for start, end in region_bounds.items():
+            region_binary[start:end + 1] = 1
+        return region_binary
+
     def predict_binding(self, sequence: str, apply_smoothing: bool = True) -> np.ndarray:
         # 1. Get raw predictions
         raw_pred = self._run_inference(sequence, self.binding_decoder)

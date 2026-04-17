@@ -51,18 +51,23 @@ To predict **disorder, binding, and flexible linkers** (`-b` and `-l`), and save
 aiupred -i test.fasta -o results.tsv -b -l
 ```
 
+To predict **redox-sensitive disorder** using original and C->S mutant profiles:
+```bash
+aiupred -i test.fasta -r
+```
+
 ### Expected Output
 ```text
-# Position	Residue	Disorder	Binding	Linker
+# Position	Residue	RedoxPlusDisorder	RedoxMinusDisorder	Region
 #sp|P04637|P53_HUMAN Cellular tumor antigen p53 OS=Homo sapiens OX=9606 GN=TP53 PE=1 SV=4
-1	M	0.8014	0.8669	0.1504
-2	E	0.8527	0.6927	0.3168
-3	E	0.8157	0.5133	0.4851
-4	P	0.8313	0.3790	0.6128
-5	Q	0.7959	0.3011	0.6729
-6	S	0.7855	0.2671	0.7027
-7	D	0.8402	0.2229	0.7547
-8	P	0.8788	0.2326	0.7533
+1	M	0.8014	0.8014	0
+2	E	0.8527	0.8527	0
+3	E	0.8157	0.8157	0
+4	P	0.8313	0.8313	0
+5	Q	0.7959	0.7959	0
+6	S	0.7855	0.7855	0
+7	D	0.8402	0.8402	0
+8	P	0.8788	0.8788	0
 ...
 ```
 
@@ -77,6 +82,7 @@ options:
   -v, --verbose         Increase output verbosity
   -b, --binding         Predict binding using AIUPred-binding
   -l, --linker          Predict flexible linkers
+  -r, --redox           Predict redox-sensitive disorder profiles and binary regions
   -g GPU, --gpu GPU     Index of GPU to use, default=0
   --force-cpu           Force the network to only utilize the CPU. Calculation will be very slow.
 ```
@@ -111,7 +117,15 @@ linker_propensities = predictor.predict_linker(
     binding_pred=binding_propensities
 )
 
-# 5. Extract Feature Embeddings
+# 5. Predict Redox-Sensitive Disorder (original vs C->S mutant)
+redox_plus_disorder, redox_minus_disorder = predictor.predict_redox_profiles(sequence)
+redox_regions_binary = predictor.predict_redox_region_binary(
+    sequence,
+    redox_plus_disorder=redox_plus_disorder,
+    redox_minus_disorder=redox_minus_disorder
+)
+
+# 6. Extract Feature Embeddings
 # Returns a 2D numpy array of shape (L, 32)
 features_2d = predictor.get_embedding(sequence, center_only=True)
 
@@ -158,6 +172,27 @@ Predicts flexible linker propensities by mathematically combining disorder and b
 - `apply_smoothing` *(bool)*: Applies Savitzky-Golay filtering. (Default: `True`)
 - `disorder_pred` *(Optional[numpy.ndarray])*: Pre-calculated disorder array to save computation time.
 - `binding_pred` *(Optional[numpy.ndarray])*: Pre-calculated binding array to save computation time.
+
+#### `mutate_c_to_s(sequence: str) -> str`
+Returns the C->S mutated sequence used for redox-minus calculations.
+- `sequence` *(str)*: The amino acid sequence.
+
+#### `get_redox_regions(redox_plus_values: numpy.ndarray, redox_minus_values: numpy.ndarray) -> dict`
+Detects redox-sensitive region boundaries using differences between original and C->S mutant disorder profiles.
+- `redox_plus_values` *(numpy.ndarray)*: Original sequence disorder propensities.
+- `redox_minus_values` *(numpy.ndarray)*: C->S mutant disorder propensities.
+- **Returns:** A dictionary of `{region_start: region_end}` boundaries (0-based, inclusive).
+
+#### `predict_redox_profiles(sequence: str) -> tuple[numpy.ndarray, numpy.ndarray]`
+Predicts redox plus/minus disorder profiles.
+- `sequence` *(str)*: The amino acid sequence.
+- **Returns:** `(redox_plus_disorder, redox_minus_disorder)` where plus is original and minus is C->S mutant.
+
+#### `predict_redox_region_binary(sequence: str, redox_plus_disorder: Optional[numpy.ndarray] = None, redox_minus_disorder: Optional[numpy.ndarray] = None) -> numpy.ndarray`
+Predicts a binary redox region annotation per residue (`1` in region, else `0`).
+- `sequence` *(str)*: The amino acid sequence.
+- `redox_plus_disorder` *(Optional[numpy.ndarray])*: Optional pre-calculated original disorder profile.
+- `redox_minus_disorder` *(Optional[numpy.ndarray])*: Optional pre-calculated C->S mutant disorder profile.
 
 #### `get_embedding(sequence: str, center_only: bool = True, chunk_len: int = 1000) -> numpy.ndarray`
 Extracts high-dimensional feature embeddings from the sequence.
