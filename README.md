@@ -2,6 +2,17 @@
 
 [About](#about) | [How to install](#install) | [Command Line Usage](#cli_usage) | [Programmatic Usage (Python API)](#api_usage) | [API Reference](#api_ref) | [Benchmarks](#benchmark) | [License](#license) | [How to cite](#cite)
 
+## What's New in AIUPred v3
+
+This latest version has also been independently evaluated in the Critical Assessment of protein Intrinsic Disorder (CAID) blind benchmark, where it achieved top-tier performance across evaluated categories.
+
+### CAID3 Results
+
+- Disorder NOX: AUC 0.825, max F1 0.633
+- Disorder PDB: AUC 0.925, max F1 0.814
+- Binding: AUC 0.764, max F1 0.338
+- Binding IDR: AUC 0.590, max F1 0.557
+
 ## <a name="about">About</a>
 
 Intrinsically disordered proteins (IDPs) have no single well-defined tertiary structure under native conditions. AIUPred is a tool that allows to identify disordered protein regions, their binding sites, and flexible linkers, created by Zsuzsanna Dosztányi and Gábor Erdős. 
