@@ -19,8 +19,8 @@ By default the workflow does **not** force CPU. AIUPred uses **GPU when PyTorch 
 |-----------|---------|
 | `input` | FASTA path or glob |
 | `outdir` | Published results root |
-| `aiupred.binding` | `-b` |
-| `aiupred.linker` | `-l` |
+| `aiupred.predict_binding` | `-b` |
+| `aiupred.predict_linker` | `-l` |
 | `aiupred.redox` | `-r` |
 | `aiupred.gpu` | `-g` (GPU index) |
 | `-profile cpu` | `--force-cpu` |
@@ -48,7 +48,7 @@ nextflow run . -profile test,docker
 Binding + linker (Conda):
 
 ```bash
-nextflow run . -profile conda --input 'data/*.fasta' --outdir results --aiupred.binding true --aiupred.linker true
+nextflow run . -profile conda --input 'data/*.fasta' --outdir results --aiupred.predict_binding true --aiupred.predict_linker true
 ```
 
 ## Profiles (main two)

@@ -65,13 +65,19 @@ Unless you add `-profile cpu`, the `aiupred` process does **not** pass `--force-
 |--------------|--------|
 | `--input` | FASTA path or glob (required unless you use `-profile test`) |
 | `--outdir` | Where published `*.aiupred.tsv` files go (default: `results`) |
-| `--aiupred.binding true` | Adds `-b` (binding prediction) |
-| `--aiupred.linker true` | Adds `-l` (linker prediction) |
+| `--aiupred.predict_binding true` | Adds `-b` (binding prediction) |
+| `--aiupred.predict_linker true` | Adds `-l` (linker prediction) |
 | `--aiupred.redox true` | Adds `-r` (redox mode) |
 | `--aiupred.gpu N` | GPU index for `-g` (default `0`; only relevant when not forcing CPU) |
 | `-profile cpu` | Forces `--force-cpu` for AIUPred |
 
-If your Nextflow version does not accept dotted keys on the command line, pass the same flags via a YAML `-params-file` (nested under `aiupred:`).
+If your Nextflow version does not accept dotted keys on the command line, pass the same flags via a YAML `-params-file` (nested under `aiupred:`), for example:
+
+```yaml
+aiupred:
+  predict_binding: true
+  predict_linker: true
+```
 
 #### Option 1: Conda profile (`-profile conda`)
 
@@ -96,7 +102,7 @@ nextflow run doszilab/AIUPred -r master -profile conda,cpu --input '/path/to/*.f
 Binding + linker on a custom FASTA:
 
 ```bash
-nextflow run doszilab/AIUPred -r master -profile conda --input '/path/to/proteins.fasta' --outdir results --aiupred.binding true --aiupred.linker true
+nextflow run doszilab/AIUPred -r master -profile conda --input '/path/to/proteins.fasta' --outdir results --aiupred.predict_binding true --aiupred.predict_linker true
 ```
 
 #### Option 2: Docker profile (`-profile docker`)
@@ -124,7 +130,7 @@ nextflow run doszilab/AIUPred -r master -profile docker_cpu --input '/path/to/*.
 Binding + linker:
 
 ```bash
-nextflow run doszilab/AIUPred -r master -profile docker --input '/path/to/proteins.fasta' --outdir results --aiupred.binding true --aiupred.linker true
+nextflow run doszilab/AIUPred -r master -profile docker --input '/path/to/proteins.fasta' --outdir results --aiupred.predict_binding true --aiupred.predict_linker true
 ```
 
 #### Pinning a release (optional)

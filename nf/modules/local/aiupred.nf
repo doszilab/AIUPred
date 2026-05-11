@@ -12,8 +12,8 @@ process AIUPRED {
 
     script:
     def prefix = meta.id ?: fasta.baseName
-    def bindFlag = params.aiupred.binding ? '-b' : ''
-    def linkFlag = params.aiupred.linker ? '-l' : ''
+    def bindFlag = params.aiupred.predict_binding ? '-b' : ''
+    def linkFlag = params.aiupred.predict_linker ? '-l' : ''
     def redoxFlag = params.aiupred.redox ? '-r' : ''
     def gpuFlag = params.aiupred.force_cpu ? '' : "-g ${params.aiupred.gpu}"
     def cpuFlag = params.aiupred.force_cpu ? '--force-cpu' : ''
