@@ -35,6 +35,8 @@ AIUPred requires Python 3.8+ and relies on modern scientific computing libraries
 
 <b>It is recommended to install AIUPred inside a virtual environment (e.g., Conda or venv).</b>
 
+### Pip install (CLI + Python API)
+
 Because AIUPred is a standard Python package, you can install it directly from GitHub using `pip`:
 
 ```bash
@@ -49,11 +51,95 @@ cd AIUPred
 pip install .
 ```
 
+### Nextflow install and setup (workflow execution)
+
+Use this when you want Nextflow to orchestrate runs (one process per FASTA) with a fixed environment. You need [Nextflow](https://www.nextflow.io/) (>= 22.10) plus **either** Micromamba/Conda **or** Docker.
+
+#### GPU vs CPU inside the workflow
+
+Unless you add `-profile cpu`, the `aiupred` process does **not** pass `--force-cpu`. AIUPred then uses a **GPU when PyTorch sees CUDA** (`torch.cuda.is_available()`); if not, it **falls back to CPU** (you may see a “No GPU found” log message). Add `-profile cpu` to **always** run on CPU (`--force-cpu`).
+
+#### Pipeline options (parameters)
+
+| What you set | Effect |
+|--------------|--------|
+| `--input` | FASTA path or glob (required unless you use `-profile test`) |
+| `--outdir` | Where published `*.aiupred.tsv` files go (default: `results`) |
+| `--aiupred.binding true` | Adds `-b` (binding prediction) |
+| `--aiupred.linker true` | Adds `-l` (linker prediction) |
+| `--aiupred.redox true` | Adds `-r` (redox mode) |
+| `--aiupred.gpu N` | GPU index for `-g` (default `0`; only relevant when not forcing CPU) |
+| `-profile cpu` | Forces `--force-cpu` for AIUPred |
+
+If your Nextflow version does not accept dotted keys on the command line, pass the same flags via a YAML `-params-file` (nested under `aiupred:`).
+
+#### Option 1: Conda profile (`-profile conda`)
+
+Smoke test (bundled FASTA):
+
+```bash
+nextflow run doszilab/AIUPred -r master -profile test,conda
+```
+
+Custom FASTA, GPU if available (omit `-profile cpu`):
+
+```bash
+nextflow run doszilab/AIUPred -r master -profile conda --input '/path/to/*.fasta' --outdir results
+```
+
+Same run, **CPU only**:
+
+```bash
+nextflow run doszilab/AIUPred -r master -profile conda,cpu --input '/path/to/*.fasta' --outdir results
+```
+
+Binding + linker on a custom FASTA:
+
+```bash
+nextflow run doszilab/AIUPred -r master -profile conda --input '/path/to/proteins.fasta' --outdir results --aiupred.binding true --aiupred.linker true
+```
+
+#### Option 2: Docker profile (`-profile docker`)
+
+Uses the CUDA-capable container image from GHCR. PyTorch uses **GPU when CUDA is visible inside the container**; otherwise it **falls back to CPU** (same logic as above). On machines without GPU passthrough into Docker, expect CPU execution with a larger image pull.
+
+Smoke test:
+
+```bash
+nextflow run doszilab/AIUPred -r master -profile test,docker
+```
+
+Custom FASTA:
+
+```bash
+nextflow run doszilab/AIUPred -r master -profile docker --input '/path/to/*.fasta' --outdir results
+```
+
+CPU only (smaller CPU-optimized image + `--force-cpu` via `docker_cpu`):
+
+```bash
+nextflow run doszilab/AIUPred -r master -profile docker_cpu --input '/path/to/*.fasta' --outdir results
+```
+
+Binding + linker:
+
+```bash
+nextflow run doszilab/AIUPred -r master -profile docker --input '/path/to/proteins.fasta' --outdir results --aiupred.binding true --aiupred.linker true
+```
+
+#### Pinning a release (optional)
+
+```bash
+nextflow run doszilab/AIUPred -r 3.1.1 -profile test,conda
+```
+
 ---
 
 ## <a name="cli_usage">Command Line Usage</a>
 
-Installing AIUPred automatically registers the `aiupred` command in your terminal. You can run it from anywhere on your system.
+The `aiupred` command below is installed by the **pip install** path (`pip install ...` or `pip install .`).
+Nextflow execution does **not** install `aiupred` globally on your host shell; it runs AIUPred inside the workflow task environment.
+Use the [Nextflow](#nextflow) section for pipeline-oriented runs.
 
 To carry out a standard disorder analysis on a FASTA file:
 ```bash
@@ -99,16 +185,6 @@ options:
   -r, --redox           Predict redox-sensitive disorder profiles and binary regions
   -g GPU, --gpu GPU     Index of GPU to use, default=0
   --force-cpu           Force the network to only utilize the CPU. Calculation will be very slow.
-```
-
----
-
-## <a name="nextflow">Nextflow</a>
-
-A minimal Nextflow workflow lives under [`nf/`](nf/) with a **root** [`main.nf`](main.nf) and [`nextflow.config`](nextflow.config) so you can run `nextflow run doszilab/AIUPred -r main` without `-main-script`. Full parameters, profiles (Conda, Docker, Singularity, CPU/GPU), and cluster notes are in [`nf/README.md`](nf/README.md). Smoke test from the repository root:
-
-```bash
-nextflow run . -profile test,conda
 ```
 
 ---
