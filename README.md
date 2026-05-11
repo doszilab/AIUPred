@@ -1,6 +1,6 @@
 # AIUPred
 
-[About](#about) | [How to install](#install) | [Command Line Usage](#cli_usage) | [Programmatic Usage (Python API)](#api_usage) | [API Reference](#api_ref) | [Benchmarks](#benchmark) | [License](#license) | [How to cite](#cite)
+[About](#about) | [How to install](#install) | [Command Line Usage](#cli_usage) | [Nextflow](#nextflow) | [Programmatic Usage (Python API)](#api_usage) | [API Reference](#api_ref) | [Benchmarks](#benchmark) | [License](#license) | [How to cite](#cite)
 
 ## What's New in AIUPred v3
 
@@ -99,6 +99,16 @@ options:
   -r, --redox           Predict redox-sensitive disorder profiles and binary regions
   -g GPU, --gpu GPU     Index of GPU to use, default=0
   --force-cpu           Force the network to only utilize the CPU. Calculation will be very slow.
+```
+
+---
+
+## <a name="nextflow">Nextflow</a>
+
+A minimal Nextflow workflow lives under [`nf/`](nf/) with a **root** [`main.nf`](main.nf) and [`nextflow.config`](nextflow.config) so you can run `nextflow run doszilab/AIUPred -r main` without `-main-script`. Full parameters, profiles (Conda, Docker, Singularity, CPU/GPU), and cluster notes are in [`nf/README.md`](nf/README.md). Smoke test from the repository root:
+
+```bash
+nextflow run . -profile test,conda
 ```
 
 ---

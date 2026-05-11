@@ -1,0 +1,11 @@
+name: aiupred-nf
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pytorch>=2.0,<3
+  - numpy>=1.21
+  - scipy>=1.7
+  - pip:
+    - ../..

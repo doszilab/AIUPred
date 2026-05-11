@@ -1,0 +1,10 @@
+# CUDA image for Nextflow -profile docker_gpu (requires NVIDIA Container Toolkit for --gpus).
+# Build from repository root: docker build -f Dockerfile.gpu -t aiupred:gpu .
+FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime
+
+WORKDIR /opt/aiupred
+COPY . /opt/aiupred
+RUN pip install --no-cache-dir "scipy>=1.7" \
+    && pip install --no-cache-dir --no-deps .
+
+ENTRYPOINT []
