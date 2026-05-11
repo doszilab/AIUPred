@@ -1,0 +1,43 @@
+#             _____ _    _ _____              _ 
+#       /\   |_   _| |  | |  __ \            | |
+#      /  \    | | | |  | | |__) | __ ___  __| |
+#     / /\ \   | | | |  | |  ___/ '__/ _ \/ _` |
+#    / ____ \ _| |_| |__| | |   | | |  __/ (_| |
+#   /_/    \_\_____|\____/|_|   |_|  \___|\__,_|
+#
+#
+# Gabor Erdos, Zsuzsanna Dosztanyi
+# Version 2.1.0
+# AIUPred: combining energy estimation with deep learning for the enhanced prediction of protein disorder
+# Nucleic Acids Res. 2024 Jul 5;52(W1):W176-W181.doi: 10.1093/nar/gkae385. 
+#
+# AIUPred - Binding: energy embedding to identify disordered binding regions
+# Journal of Molecular Biology 2025
+
+# Position	Residue	Disorder
+#>smoke_test
+1	M	0.6444
+2	K	0.6535
+3	T	0.6481
+4	I	0.6414
+5	I	0.6224
+6	A	0.6176
+7	L	0.6706
+8	S	0.6901
+9	Y	0.7288
+10	I	0.7263
+11	F	0.7285
+12	C	0.7175
+13	L	0.6954
+14	V	0.6940
+15	F	0.7097
+16	A	0.7222
+17	D	0.7422
+18	Y	0.7517
+19	K	0.8402
+20	D	0.7651
+21	D	0.7858
+22	D	0.7737
+23	D	0.7196
+24	K	0.6640
+

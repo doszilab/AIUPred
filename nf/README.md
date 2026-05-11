@@ -11,7 +11,14 @@ The default entry is **repository-root** [`main.nf`](../main.nf) with [`nextflow
 
 ### Container images (Docker / Singularity)
 
-Build local tags from the repository root (same tags referenced in `nf/nextflow.config`):
+Default container URIs in `nf/nextflow.config` point to GHCR:
+
+```text
+ghcr.io/doszilab/aiupred:cpu
+ghcr.io/doszilab/aiupred:gpu
+```
+
+To build/test equivalent images locally from this repository root:
 
 ```bash
 docker build -t aiupred:cpu .
@@ -76,10 +83,10 @@ nextflow run . -profile conda --input 'data/*.fasta' --outdir results
 | Profile | Purpose |
 |---------|---------|
 | `conda` | Conda env from `nf/env/aiupred.yml` (PyTorch + `pip` install of this repo via relative path) |
-| `docker` | CPU container `aiupred:cpu` |
-| `docker_gpu` | CUDA container `aiupred:gpu` with `containerOptions = '--gpus all'` (requires [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)) |
-| `singularity` | `docker://aiupred:cpu` |
-| `singularity_gpu` | `docker://aiupred:gpu` with `singularity.runOptions = '--nv'` |
+| `docker` | CPU container `ghcr.io/doszilab/aiupred:cpu` |
+| `docker_gpu` | CUDA container `ghcr.io/doszilab/aiupred:gpu` with `containerOptions = '--gpus all'` (requires [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)) |
+| `singularity` | `docker://ghcr.io/doszilab/aiupred:cpu` |
+| `singularity_gpu` | `docker://ghcr.io/doszilab/aiupred:gpu` with `singularity.runOptions = '--nv'` |
 | `test` | Sets `input` to `nf/tests/data/test.fasta` and `outdir` to `nf/tests/results` |
 | `cpu` | Sets `params.aiupred.force_cpu = true` for portable CPU-only runs |
 
@@ -94,7 +101,7 @@ process {
     executor = 'slurm'
     clusterOptions = '--gres=gpu:1'
     withName: 'AIUPRED' {
-        container = 'docker://aiupred:gpu'
+        container = 'docker://ghcr.io/doszilab/aiupred:gpu'
     }
 }
 ```
