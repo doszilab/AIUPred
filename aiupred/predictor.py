@@ -65,12 +65,16 @@ class AIUPred:
         """Applies the lookup table mapping and optional Savitzky-Golay filtering."""
         rounded_pred = np.rint(prediction * 1000)
         transformed_pred = self.vectorized_transform(rounded_pred)
-        
+
         if not apply_smoothing:
             return transformed_pred
-            
-        # Apply smoothing
-        pred = savgol_filter(transformed_pred, 11, 5)
+
+        # savgol_filter(window=11, polyorder=5) requires len(x) >= window_length (SciPy default mode).
+        win, poly = 11, 5
+        if len(transformed_pred) < win:
+            return transformed_pred
+
+        pred = savgol_filter(transformed_pred, win, poly)
         pred[pred > 1] = 1.0  # Cap the maximum value at 1.0
         return pred
 

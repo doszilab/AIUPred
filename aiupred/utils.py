@@ -12,6 +12,6 @@ def multifasta_reader(file_handler):
             header = line.strip()
             sequence_dct[header] = ''
         elif line.strip():
-            sequence_dct[header] += line.strip()
+            sequence_dct[header] += line.strip().upper()
     file_handler.close()
     return sequence_dct
