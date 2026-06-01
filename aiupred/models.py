@@ -42,7 +42,7 @@ class TransformerModel(nn.Module):
             return embedding
         output = torch.flatten(embedding, 1)
         output = self.decoder(output)
-        return torch.squeeze(output)
+        return torch.squeeze(output, dim=-1)
 
 
 class DecoderModel(nn.Module):
@@ -66,5 +66,5 @@ class DecoderModel(nn.Module):
         for layer in self.layers[:-1]:
             x = torch.relu(layer(x))
         output = torch.sigmoid(self.layers[-1](x))
-        return torch.squeeze(output)
+        return torch.squeeze(output, dim=-1)
 
