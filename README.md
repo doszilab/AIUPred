@@ -2,6 +2,8 @@
 
 [About](#about) | [How to install](#install) | [Command Line Usage](#cli_usage) | [Nextflow](#nextflow) | [Programmatic Usage (Python API)](#api_usage) | [API Reference](#api_ref) | [Benchmarks](#benchmark) | [License](#license) | [How to cite](#cite)
 
+> **Nextflow pipeline:** To run AIUPred at scale via Nextflow, see the [AIUPred-NF repository](https://github.com/doszilab/AIUPred-NF).
+
 ## What's New in AIUPred v3
 
 Novel integrated energy embedding framework for the different flavours of disorder. Redesigned OOP based framework for easier use and implementation.
@@ -51,92 +53,12 @@ cd AIUPred
 pip install .
 ```
 
-### Nextflow install and setup (workflow execution)
+### <a name=”nextflow”>Nextflow pipeline</a>
 
-Use this when you want Nextflow to orchestrate runs (one process per FASTA) with a fixed environment. You need [Nextflow](https://www.nextflow.io/) (>= 22.10) plus **either** Micromamba/Conda **or** Docker.
-
-#### GPU vs CPU inside the workflow
-
-Unless you add `-profile cpu`, the `aiupred` process does **not** pass `--force-cpu`. AIUPred then uses a **GPU when PyTorch sees CUDA** (`torch.cuda.is_available()`); if not, it **falls back to CPU** (you may see a “No GPU found” log message). Add `-profile cpu` to **always** run on CPU (`--force-cpu`).
-
-#### Pipeline options (parameters)
-
-| What you set | Effect |
-|--------------|--------|
-| `--input` | FASTA path or glob (required unless you use `-profile test`) |
-| `--outdir` | Where published `*.aiupred.tsv` files go (default: `results`) |
-| `--aiupred.predict_binding true` | Adds `-b` (binding prediction) |
-| `--aiupred.predict_linker true` | Adds `-l` (linker prediction) |
-| `--aiupred.redox true` | Adds `-r` (redox mode) |
-| `--aiupred.gpu N` | GPU index for `-g` (default `0`; only relevant when not forcing CPU) |
-| `-profile cpu` | Forces `--force-cpu` for AIUPred |
-
-If your Nextflow version does not accept dotted keys on the command line, pass the same flags via a YAML `-params-file` (nested under `aiupred:`), for example:
-
-```yaml
-aiupred:
-  predict_binding: true
-  predict_linker: true
-```
-
-#### Option 1: Conda profile (`-profile conda`)
-
-Smoke test (bundled FASTA):
+To run AIUPred at scale with Nextflow (one process per FASTA, Conda/Docker environments, GPU support), use the dedicated [AIUPred-NF repository](https://github.com/doszilab/AIUPred-NF):
 
 ```bash
-nextflow run doszilab/AIUPred -r master -profile test,conda
-```
-
-Custom FASTA, GPU if available (omit `-profile cpu`):
-
-```bash
-nextflow run doszilab/AIUPred -r master -profile conda --input '/path/to/*.fasta' --outdir results
-```
-
-Same run, **CPU only**:
-
-```bash
-nextflow run doszilab/AIUPred -r master -profile conda,cpu --input '/path/to/*.fasta' --outdir results
-```
-
-Binding + linker on a custom FASTA:
-
-```bash
-nextflow run doszilab/AIUPred -r master -profile conda --input '/path/to/proteins.fasta' --outdir results --aiupred.predict_binding true --aiupred.predict_linker true
-```
-
-#### Option 2: Docker profile (`-profile docker`)
-
-Uses the CUDA-capable container image from GHCR. PyTorch uses **GPU when CUDA is visible inside the container**; otherwise it **falls back to CPU** (same logic as above). On machines without GPU passthrough into Docker, expect CPU execution with a larger image pull.
-
-Smoke test:
-
-```bash
-nextflow run doszilab/AIUPred -r master -profile test,docker
-```
-
-Custom FASTA:
-
-```bash
-nextflow run doszilab/AIUPred -r master -profile docker --input '/path/to/*.fasta' --outdir results
-```
-
-CPU only (smaller CPU-optimized image + `--force-cpu` via `docker_cpu`):
-
-```bash
-nextflow run doszilab/AIUPred -r master -profile docker_cpu --input '/path/to/*.fasta' --outdir results
-```
-
-Binding + linker:
-
-```bash
-nextflow run doszilab/AIUPred -r master -profile docker --input '/path/to/proteins.fasta' --outdir results --aiupred.predict_binding true --aiupred.predict_linker true
-```
-
-#### Pinning a release (optional)
-
-```bash
-nextflow run doszilab/AIUPred -r 3.1.1 -profile test,conda
+nextflow run doszilab/AIUPred-NF -r main -profile test,conda
 ```
 
 ---
@@ -145,7 +67,7 @@ nextflow run doszilab/AIUPred -r 3.1.1 -profile test,conda
 
 The `aiupred` command below is installed by the **pip install** path (`pip install ...` or `pip install .`).
 Nextflow execution does **not** install `aiupred` globally on your host shell; it runs AIUPred inside the workflow task environment.
-Use the [Nextflow](#nextflow) section for pipeline-oriented runs.
+For pipeline-oriented runs see [AIUPred-NF](https://github.com/doszilab/AIUPred-NF).
 
 To carry out a standard disorder analysis on a FASTA file:
 ```bash
@@ -262,10 +184,9 @@ The core predictor class. Initializes the neural networks and manages the comput
 - `force_cpu` *(bool)*: Force the models to run on CPU. (Default: `False`)
 - `gpu_num` *(int)*: The index of the CUDA device to use. (Default: `0`)
 
-#### `predict_disorder(sequence: str, apply_smoothing: bool = True) -> numpy.ndarray`
+#### `predict_disorder(sequence: str) -> numpy.ndarray`
 Predicts disorder propensities for a given amino acid sequence.
 - `sequence` *(str)*: The amino acid sequence.
-- `apply_smoothing` *(bool)*: Applies Savitzky-Golay filtering to the output if the sequence is >10 residues. (Default: `True`)
 
 #### `predict_binding(sequence: str, apply_smoothing: bool = True) -> numpy.ndarray`
 Predicts binding propensities for a given amino acid sequence.
