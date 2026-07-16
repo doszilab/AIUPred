@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+from pathlib import Path
 from .predictor import AIUPred
 from .utils import multifasta_reader
 
@@ -58,6 +59,12 @@ def main():
 # Journal of Molecular Biology 2025
 '''
     print(banner)
+
+    if args.output_file:
+        out_dir = Path(args.output_file).parent
+        if not out_dir.exists():
+            logging.error(f"Output directory does not exist: {out_dir}")
+            sys.exit(1)
 
     # 1. Read sequences
     logging.info('Reading FASTA file...')

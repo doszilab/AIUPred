@@ -229,7 +229,7 @@ Extracts high-dimensional feature embeddings from the sequence.
 
 ### Helper Functions
 
-#### `multifasta_reader(file_path: str) -> dict`
+#### `multifasta_reader(file_path: str | Path | IO) -> dict`
 Utility function to parse a FASTA file.
 - **Returns:** A dictionary mapping `>header` strings to their corresponding `sequence` strings.
 

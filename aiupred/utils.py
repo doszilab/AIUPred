@@ -1,9 +1,11 @@
+import os
+
 def multifasta_reader(file_handler):
     """
     (multi) FASTA reader function
     :return: Dictionary with header -> sequence mapping from the file
     """
-    if type(file_handler) == str:
+    if isinstance(file_handler, (str, os.PathLike)):
         file_handler = open(file_handler)
     sequence_dct = {}
     header = None
